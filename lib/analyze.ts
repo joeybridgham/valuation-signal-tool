@@ -6,7 +6,8 @@
 // tickers return their labeled SAMPLE snapshot; anything else returns null.
 // ============================================================================
 import type { AnalyzeResult, MarketData, Fundamentals, Rates, Assumptions } from "./types";
-import { getFmpBundle, hasFmpKey } from "./fmp";
+import { getFmpBundle, getLiteBundle, hasFmpKey } from "./fmp";
+import { hasAvKey, avEtfProfile } from "./alphavantage";
 import { getBuzz } from "./apewisdom";
 import { getFearGreed } from "./feargreed";
 import { clamp } from "./valuation";
@@ -70,7 +71,8 @@ export async function getAnalysis(symbol: string): Promise<AnalyzeResult | null>
     return sample ? recomputeSampleDefaults(sample) : null;
   }
 
-  const [bundle, buzz, fearGreed] = await Promise.all([getFmpBundle(sym), getBuzz(sym), getFearGreed()]);
+  const [fmpBundle, buzz, fearGreed] = await Promise.all([getFmpBundle(sym), getBuzz(sym), getFearGreed()]);
+  const bundle = fmpBundle ?? (await getLiteBundle(sym));
   if (!bundle) {
     const sample = SAMPLES[sym];
     return sample ? recomputeSampleDefaults(sample) : null;
@@ -106,6 +108,11 @@ export async function getAnalysis(symbol: string): Promise<AnalyzeResult | null>
     sources: bundle.sources,
   };
   await attachBuzzExtras(result);
+  result.kind = bundle.kind ?? "stock";
+  if (result.kind === "fund") {
+    const fund = hasAvKey() ? await avEtfProfile(sym) : null;
+    result.fund = fund ?? { expenseRatio: null, netAssets: null, inception: null, dividendYield: null, turnover: null, issuer: null, assetType: "Fund", sectors: [], holdings: [] };
+  }
   return result;
 }
 

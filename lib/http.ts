@@ -9,7 +9,7 @@ export interface FetchOpts {
 }
 
 export async function getJson<T = any>(url: string, opts: FetchOpts = {}): Promise<T | null> {
-  const { revalidate = 60 * 60 * 12, timeoutMs = 7000, headers } = opts;
+  const { revalidate = 60 * 60 * 24, timeoutMs = 7000, headers } = opts;
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {

@@ -17,6 +17,7 @@ import { PriceChart, RsiChart, HistValuation, FearGreedGauge } from "./Charts";
 import { KpiRow, CongressTrades, RetailBuzz, NewsFeed, SampleBanner } from "./Panels";
 import Watchlist from "./Watchlist";
 import PdfButton from "./PdfButton";
+import FundView from "./FundView";
 
 function techInterpretation(t: TechSnapshot): string[] {
   const out: string[] = [];
@@ -56,11 +57,11 @@ export default function AnalysisView({
   const score = useMemo(() => computeScorecard(data, val, tech, weights), [data, val, tech, weights]);
 
   useEffect(() => {
-    if (!live || initialNarrative) return;
+    if (!live || initialNarrative || data.kind === "fund") return;
     let cancel = false;
     setNarrLoading(true); setNarrError(null);
     fetch("/api/narrative", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(buildNarrativeInput(data, val, score)) })
-      .then(async (r) => { if (!r.ok) { const j = await r.json().catch(() => ({})); throw new Error(j.error || "Narrative unavailable."); } return r.json(); })
+      .then(async (r) => { const j = await r.json().catch(() => ({} as any)); if (!r.ok || j.error || !j.bull) throw new Error(j.error || "Narrative unavailable."); return j; })
       .then((n) => { if (!cancel) setNarrative(n); })
       .catch((e) => { if (!cancel) setNarrError(String(e.message || e)); })
       .finally(() => { if (!cancel) setNarrLoading(false); });
@@ -70,6 +71,8 @@ export default function AnalysisView({
 
   const showHist = data.histMultiples.filter((h) => h.pe != null).length >= 3;
   const techLines = tech.hasData ? techInterpretation(tech) : [];
+
+  if (data.kind === "fund") return <FundView data={data} />;
 
   return (
     <div className="stack" style={{ gap: 26 }}>

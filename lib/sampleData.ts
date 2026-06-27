@@ -203,3 +203,44 @@ function genSamplePosts(sym: string) {
     { title: `Is $${sym} a buy at these levels? DD inside (sample)`, url: q, subreddit: "r/wallstreetbets", score: 310, created: wk },
   ];
 }
+
+// Sample ETF for the fund view (no keys needed to demo it).
+function buildFund(): AnalyzeResult {
+  const holdings = [
+    ["AAPL", "Apple Inc", 0.071], ["MSFT", "Microsoft Corp", 0.066], ["NVDA", "NVIDIA Corp", 0.061],
+    ["AMZN", "Amazon.com Inc", 0.038], ["META", "Meta Platforms Inc", 0.025], ["GOOGL", "Alphabet Inc Cl A", 0.021],
+    ["GOOG", "Alphabet Inc Cl C", 0.018], ["AVGO", "Broadcom Inc", 0.017], ["BRK.B", "Berkshire Hathaway", 0.016],
+    ["LLY", "Eli Lilly & Co", 0.014], ["TSLA", "Tesla Inc", 0.013], ["JPM", "JPMorgan Chase", 0.013],
+    ["XOM", "Exxon Mobil", 0.011], ["UNH", "UnitedHealth Group", 0.010], ["V", "Visa Inc", 0.009],
+    ["MA", "Mastercard Inc", 0.008], ["COST", "Costco Wholesale", 0.008], ["HD", "Home Depot", 0.007],
+  ].map(([symbol, name, weight]) => ({ symbol: symbol as string, name: name as string, weight: weight as number }));
+  const series = genSeries("VOO", 548);
+  return {
+    meta: { symbol: "VOO", name: "Vanguard S&P 500 ETF", exchange: "NYSE Arca", sector: "Large Blend", industry: "Index Fund", currency: "USD", asOf: today, priceAsOf: today, isSample: true, notes: [SAMPLE_NOTE] },
+    market: { price: 548.2, dayChange: 0, dayChangePct: 0, marketCap: 1.35e12, sharesOutstanding: 2.46e9, beta: 1.0 },
+    fundamentals: { freeCashFlow: 0, fcfHistory: [], ebitda: 0, epsTTM: 0, revenue: 0, revenuePerShare: 0, bookValuePerShare: 0, netDebt: 0, totalDebt: 0, cash: 0, interestExpense: 0, taxRate: 0.21, dividendPerShare: 0 },
+    ownMultiples: { pe: null, evEbitda: null, ps: null, pb: null },
+    peers: { peers: [], medianPE: null, medianEvEbitda: null, medianPS: null },
+    analyst: { available: false, targetLow: null, targetMean: null, targetHigh: null, numAnalysts: null, estGrowth: null },
+    rates: { riskFree: 0.043, equityRiskPremium: 0.05, riskFreeIsFallback: true },
+    defaults: { stage1Growth: 0.08, terminalGrowth: 0.025, wacc: 0.09, horizon: 5 },
+    costEquity: 0.093, waccFallback: false, dividendPayer: true, fmpDcf: null,
+    priceSeries: series, histMultiples: [], congress: [],
+    buzz: { found: false, rank: null, mentions: null, mentions24hAgo: null, upvotes: null, change24hPct: null },
+    fearGreed: { available: true, score: 55, rating: "Greed", asOf: today },
+    news: news([["S&P 500 sets fresh record as megacaps lead", "Reuters", today], ["Index-fund inflows continue to climb", "Bloomberg", monthsAgo(1)]]),
+    sources: {}, kind: "fund",
+    fund: {
+      expenseRatio: 0.0003, netAssets: 1.35e12, inception: "2010-09-07", dividendYield: 0.013, turnover: 0.02,
+      issuer: "Vanguard", assetType: "ETF",
+      sectors: [
+        { sector: "Information Technology", weight: 0.32 }, { sector: "Financials", weight: 0.13 },
+        { sector: "Health Care", weight: 0.11 }, { sector: "Consumer Discretionary", weight: 0.10 },
+        { sector: "Communication Services", weight: 0.09 }, { sector: "Industrials", weight: 0.08 },
+        { sector: "Consumer Staples", weight: 0.06 }, { sector: "Energy", weight: 0.04 },
+      ],
+      holdings,
+    },
+  };
+}
+SAMPLES.VOO = buildFund();

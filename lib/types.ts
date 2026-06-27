@@ -159,6 +159,8 @@ export interface AnalyzeResult {
   sources: Provenance;
   mentionHistory?: MentionPoint[];
   redditPosts?: RedditLink[];
+  kind?: SecurityKind;
+  fund?: FundData;
 }
 
 // ---- Narrative ----
@@ -212,4 +214,19 @@ export interface RedditLink {
   subreddit: string;
   score: number;
   created: string;
+}
+
+// ---- Mutual fund / ETF view ----
+export type SecurityKind = "stock" | "fund";
+export interface FundHolding { symbol: string; name: string; weight: number; }
+export interface FundData {
+  expenseRatio: number | null;
+  netAssets: number | null;
+  inception: string | null;
+  dividendYield: number | null;
+  turnover: number | null;
+  issuer: string | null;
+  assetType: string;
+  sectors: { sector: string; weight: number }[];
+  holdings: FundHolding[];
 }
