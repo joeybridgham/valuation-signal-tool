@@ -5,7 +5,7 @@ import { getAnalysis } from "@/lib/analyze";
 import { hasFmpKey } from "@/lib/fmp";
 
 export const runtime = "nodejs";
-export const maxDuration = 10; // Hobby-tier cap
+export const maxDuration = 30; // headroom (Hobby allows up to 60s); upstream calls also fail gracefully
 
 export async function GET(req: NextRequest) {
   const symbol = (req.nextUrl.searchParams.get("symbol") ?? "").toUpperCase().trim();

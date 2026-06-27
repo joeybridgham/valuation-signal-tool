@@ -357,3 +357,8 @@ summary { cursor: pointer; font-family: var(--font-mono); font-size: 0.78rem; co
 .seg-btn { font-family: var(--font-mono); font-size: 0.72rem; padding: 4px 10px; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
 .seg-btn.on { background: var(--accent); color: #FBF7EF; }
 .reddit-posts { border-top: 1px solid var(--line-2); margin-top: 12px; padding-top: 4px; }
+
+/* technical read-out */
+.tech-read { margin-top: 8px; }
+.tech-list { margin: 6px 0 8px; padding-left: 18px; }
+.tech-list li { font-size: 0.9rem; color: var(--ink-2); margin: 3px 0; }
