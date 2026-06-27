@@ -1,28 +1,21 @@
 // ============================================================================
-// getAnalysis(symbol) — the single orchestrator used by /api/analyze AND by the
-// statically-generated featured pages. Fetches FMP + ApeWisdom + CNN in
-// parallel, computes WACC / cost of equity / default assumptions, and assembles
-// the AnalyzeResult payload (every raw input the client needs to recompute).
-//
-// No FMP key? Featured tickers return their labeled SAMPLE snapshot; anything
-// else returns null so the caller can show a "configure key" state.
+// getAnalysis(symbol) — orchestrator used by /api/analyze AND the static
+// featured pages. Fetches FMP + ApeWisdom + CNN in parallel, computes WACC /
+// cost of equity / default assumptions, attaches any persisted mention history
+// + cached Reddit posts, and returns the full payload. No FMP key => featured
+// tickers return their labeled SAMPLE snapshot; anything else returns null.
 // ============================================================================
-
 import type { AnalyzeResult, MarketData, Fundamentals, Rates, Assumptions } from "./types";
 import { getFmpBundle, hasFmpKey } from "./fmp";
 import { getBuzz } from "./apewisdom";
 import { getFearGreed } from "./feargreed";
 import { clamp } from "./valuation";
 import { SAMPLES } from "./sampleData";
+import { hasStore, kvGet } from "./store";
 
-const ERP = 0.05; // equity risk premium default
+const ERP = 0.05;
 
-export interface Defaults {
-  defaults: Assumptions;
-  costEquity: number;
-  waccFallback: boolean;
-  notes: string[];
-}
+export interface Defaults { defaults: Assumptions; costEquity: number; waccFallback: boolean; notes: string[]; }
 
 export function computeDefaults(m: MarketData, f: Fundamentals, rates: Rates): Defaults {
   const notes: string[] = [];
@@ -33,9 +26,7 @@ export function computeDefaults(m: MarketData, f: Fundamentals, rates: Rates): D
   costDebt = clamp(costDebt, rates.riskFree + 0.005, 0.15);
   const afterTaxDebt = costDebt * (1 - f.taxRate);
 
-  const E = Math.max(0, m.marketCap);
-  const D = Math.max(0, f.totalDebt);
-  const V = E + D;
+  const E = Math.max(0, m.marketCap), D = Math.max(0, f.totalDebt), V = E + D;
   let wacc = V > 0 ? (E / V) * costEquity + (D / V) * afterTaxDebt : costEquity;
 
   const terminalGrowth = 0.025;
@@ -45,7 +36,6 @@ export function computeDefaults(m: MarketData, f: Fundamentals, rates: Rates): D
     notes.push("WACC was unstable for this name — fell back to a flat 9% discount rate.");
   }
 
-  // stage-1 growth default: trailing FCF CAGR, capped to avoid runaway values.
   let g1: number | null = null;
   const h = f.fcfHistory;
   if (h.length >= 2) {
@@ -55,28 +45,33 @@ export function computeDefaults(m: MarketData, f: Fundamentals, rates: Rates): D
   if (g1 == null || !isFinite(g1)) g1 = 0.08;
   g1 = clamp(g1, 0, 0.25);
 
-  return {
-    defaults: { stage1Growth: round4(g1), terminalGrowth, wacc: round4(wacc), horizon: 5 },
-    costEquity: round4(costEquity), waccFallback, notes,
-  };
+  return { defaults: { stage1Growth: round4(g1), terminalGrowth, wacc: round4(wacc), horizon: 5 }, costEquity: round4(costEquity), waccFallback, notes };
 }
-
 function round4(x: number) { return Math.round(x * 1e4) / 1e4; }
+
+// Attach persisted mention history + cached Reddit posts (graceful: no store => leaves them undefined)
+async function attachBuzzExtras(result: AnalyzeResult): Promise<void> {
+  if (!hasStore()) return;
+  const sym = result.meta.symbol;
+  const [history, posts] = await Promise.all([
+    kvGet<AnalyzeResult["mentionHistory"]>(`mentions:${sym}`),
+    kvGet<AnalyzeResult["redditPosts"]>(`posts:${sym}`),
+  ]);
+  if (history && history.length) result.mentionHistory = history;
+  if (posts && posts.length) result.redditPosts = posts;
+}
 
 export async function getAnalysis(symbol: string): Promise<AnalyzeResult | null> {
   const sym = symbol.toUpperCase().trim().replace(/[^A-Z.\-]/g, "");
   if (!sym) return null;
 
-  // No key -> sample (featured only)
   if (!hasFmpKey()) {
     const sample = SAMPLES[sym];
-    if (!sample) return null;
-    return recomputeSampleDefaults(sample);
+    return sample ? recomputeSampleDefaults(sample) : null;
   }
 
   const [bundle, buzz, fearGreed] = await Promise.all([getFmpBundle(sym), getBuzz(sym), getFearGreed()]);
   if (!bundle) {
-    // FMP returned nothing usable — if it's a featured ticker, fall back to sample.
     const sample = SAMPLES[sym];
     return sample ? recomputeSampleDefaults(sample) : null;
   }
@@ -85,7 +80,7 @@ export async function getAnalysis(symbol: string): Promise<AnalyzeResult | null>
   const d = computeDefaults(bundle.market, bundle.fundamentals, rates);
   const today = new Date().toISOString().slice(0, 10);
 
-  return {
+  const result: AnalyzeResult = {
     meta: {
       symbol: sym, name: bundle.meta.name, exchange: bundle.meta.exchange, sector: bundle.meta.sector,
       industry: bundle.meta.industry, currency: bundle.meta.currency, asOf: today, priceAsOf: bundle.meta.priceAsOf,
@@ -110,9 +105,10 @@ export async function getAnalysis(symbol: string): Promise<AnalyzeResult | null>
     news: bundle.news,
     sources: bundle.sources,
   };
+  await attachBuzzExtras(result);
+  return result;
 }
 
-// Even for sample data we run the real WACC/defaults math so sliders start sensibly.
 function recomputeSampleDefaults(sample: AnalyzeResult): AnalyzeResult {
   const d = computeDefaults(sample.market, sample.fundamentals, sample.rates);
   return { ...sample, defaults: d.defaults, costEquity: d.costEquity, waccFallback: d.waccFallback };

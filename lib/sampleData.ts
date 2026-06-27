@@ -68,6 +68,8 @@ function build(c: Cfg): AnalyzeResult {
     buzz: { found: c.buzz.found, rank: c.buzz.rank, mentions: c.buzz.mentions, mentions24hAgo: c.buzz.prior, upvotes: c.buzz.up, change24hPct: c.buzz.found && c.buzz.prior ? (c.buzz.mentions! - c.buzz.prior) / c.buzz.prior : null },
     fearGreed: { available: true, score: c.fg.score, rating: c.fg.rating, asOf: today },
     news: c.news,
+    mentionHistory: genMentions(c.symbol, c.buzz.found ? (c.buzz.mentions ?? 80) : 14),
+    redditPosts: genSamplePosts(c.symbol),
     sources: {
       incomeAnnual: { ...filing, label: `Annual income statement (${c.fyLabel})` },
       balanceAnnual: { ...filing, label: `Annual balance sheet (${c.fyLabel})` },
@@ -174,4 +176,30 @@ export const SAMPLE_NARRATIVES: Record<string, Narrative> = {
 
 export function getSampleNarrative(symbol: string): Narrative | null {
   return SAMPLE_NARRATIVES[symbol.toUpperCase()] ?? null;
+}
+
+// Illustrative ~180-day mention history (seeded) for the featured samples.
+function genMentions(seed: string, level: number) {
+  let s = 0; for (let i = 0; i < seed.length; i++) s = (s * 31 + seed.charCodeAt(i)) >>> 0;
+  const rand = () => { s = (1103515245 * s + 12345) & 0x7fffffff; return s / 0x7fffffff; };
+  const out: { date: string; mentions: number; rank: number | null; upvotes: number }[] = [];
+  let v = Math.max(6, level * 0.5);
+  const now = Date.now();
+  for (let i = 179; i >= 0; i--) {
+    v = Math.max(2, v * (1 + (rand() - 0.48) * 0.25));
+    if (rand() > 0.94) v *= 1.8; // occasional spike
+    const m = Math.round(v);
+    out.push({ date: new Date(now - i * 86400000).toISOString().slice(0, 10), mentions: m, rank: Math.max(1, Math.round(120 - m)), upvotes: Math.round(m * (2 + rand() * 4)) });
+  }
+  return out;
+}
+
+function genSamplePosts(sym: string) {
+  const q = `https://www.reddit.com/search/?q=${encodeURIComponent("$" + sym)}`;
+  const today = new Date().toISOString().slice(0, 10);
+  const wk = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
+  return [
+    { title: `$${sym} — earnings & valuation discussion (sample)`, url: q, subreddit: "r/stocks", score: 480, created: today },
+    { title: `Is $${sym} a buy at these levels? DD inside (sample)`, url: q, subreddit: "r/wallstreetbets", score: 310, created: wk },
+  ];
 }

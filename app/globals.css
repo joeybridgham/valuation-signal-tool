@@ -351,3 +351,9 @@ summary { cursor: pointer; font-family: var(--font-mono); font-size: 0.78rem; co
 .how { display: grid; gap: 12px; }
 @media (min-width: 720px) { .how { grid-template-columns: repeat(3, 1fr); } }
 .how .n { font-family: var(--font-display); font-size: 1.6rem; color: var(--accent); }
+
+/* segmented range toggle (mentions trend) */
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 100px; overflow: hidden; }
+.seg-btn { font-family: var(--font-mono); font-size: 0.72rem; padding: 4px 10px; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+.seg-btn.on { background: var(--accent); color: #FBF7EF; }
+.reddit-posts { border-top: 1px solid var(--line-2); margin-top: 12px; padding-top: 4px; }

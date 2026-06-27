@@ -164,3 +164,36 @@ export function FearGreedGauge({ score, rating }: { score: number; rating: strin
     </div>
   );
 }
+
+// ---------------- Multi-day Reddit mentions trend ----------------
+export function MentionsTrend({ history, days }: { history: { date: string; mentions: number }[]; days: number }) {
+  const data = history.slice(-days);
+  if (data.length < 3) return null;
+  const W = 760, H = 170, PT = 12, PB = 22, PL = 40, PR = 10;
+  const vals = data.map((d) => d.mentions);
+  const max = Math.max(...vals, 1);
+  const x = (i: number) => PL + (i / (data.length - 1)) * (W - PL - PR);
+  const y = (v: number) => PT + (1 - v / max) * (H - PT - PB);
+  const pts = data.map((d, i) => [x(i), y(d.mentions)] as [number, number]);
+  const line = linePath(pts);
+  const area = `${line} L ${x(data.length - 1).toFixed(1)} ${y(0).toFixed(1)} L ${x(0).toFixed(1)} ${y(0).toFixed(1)} Z`;
+  const ticks = [max, max / 2, 0];
+  const idxs = [0, Math.floor((data.length - 1) / 2), data.length - 1];
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto" }} role="img" aria-label="Reddit mentions over time">
+      {ticks.map((t, i) => (
+        <g key={i}>
+          <line x1={PL} y1={y(t)} x2={W - PR} y2={y(t)} style={{ stroke: "var(--line-2)" }} strokeWidth={1} />
+          <text x={PL - 6} y={y(t) + 3} textAnchor="end" style={{ fill: "var(--muted)", fontFamily: "var(--font-mono)", fontSize: 9 }}>{Math.round(t)}</text>
+        </g>
+      ))}
+      <path d={area} style={{ fill: "var(--accent-wash)" }} />
+      <path d={line} fill="none" style={{ stroke: "var(--accent)" }} strokeWidth={1.8} />
+      <circle cx={x(data.length - 1)} cy={y(vals[vals.length - 1])} r={3} style={{ fill: "var(--accent)" }} />
+      {idxs.map((i, k) => (
+        <text key={k} x={x(i)} y={H - 6} textAnchor={k === 0 ? "start" : k === 2 ? "end" : "middle"} style={{ fill: "var(--muted)", fontFamily: "var(--font-mono)", fontSize: 9 }}>{data[i].date.slice(2)}</text>
+      ))}
+    </svg>
+  );
+}

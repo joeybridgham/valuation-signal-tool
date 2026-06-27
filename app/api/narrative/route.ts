@@ -8,7 +8,7 @@ export const maxDuration = 10;
 
 export async function POST(req: NextRequest) {
   if (!hasAnthropicKey()) {
-    return NextResponse.json({ error: "Narrative unavailable: ANTHROPIC_API_KEY not configured." }, { status: 503 });
+    return NextResponse.json({ error: "Narrative unavailable: set GEMINI_API_KEY (free) or ANTHROPIC_API_KEY." }, { status: 503 });
   }
   let input: NarrativeInput;
   try {

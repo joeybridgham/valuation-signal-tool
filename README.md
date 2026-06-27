@@ -139,3 +139,17 @@ test/valuation.test.ts          # numerical sanity tests
 Educational tool. Not investment advice. Not a recommendation to buy or sell any security. Data may be delayed or inaccurate (equity data is end-of-day on the FMP free tier). Congressional disclosures lag up to ~45 days, cover trades above $1,000, are reported as amount ranges, and cover members of Congress only. Narratives are an AI synthesis of public data.
 
 Data sources: **Financial Modeling Prep**, **ApeWisdom**, **CNN Business Fear & Greed Index**.
+
+### Free narrative via Google Gemini (recommended)
+
+The bull/base/bear narrative is provider-agnostic. Set **`GEMINI_API_KEY`** (Google AI Studio, free tier — no credit card: https://aistudio.google.com/) and it's used automatically; optionally `GEMINI_MODEL` (default `gemini-2.0-flash`). If instead you set `ANTHROPIC_API_KEY`, that's used. If neither is set, every other section still works and the narrative shows a clean "unavailable" note. The retail-buzz panel also draws a 24h mentions chart (now vs 24h ago) from ApeWisdom's free feed — a longer history would require recording daily snapshots (e.g. Vercel KV).
+
+### Live mention history + Reddit posts (optional, free)
+
+The retail-buzz panel can show a multi-day mention **trend** (1M / 3M / 6M) and **2 Reddit posts** per stock. Both are optional and free, and the app works without them (24h chart + a "view on Reddit" link).
+
+1. **Storage** — in Vercel, add **Upstash Redis** (Storage / Marketplace → Upstash → free plan: 256 MB / 500K cmds-month). It auto-injects `KV_REST_API_URL` and `KV_REST_API_TOKEN`.
+2. **Cron secret** — add an env var `CRON_SECRET` set to any random string. `vercel.json` already schedules `/api/cron/snapshot` once daily; Vercel sends the secret automatically.
+3. **Reddit posts (optional)** — create a free "script" app at https://www.reddit.com/prefs/apps and add `REDDIT_CLIENT_ID` + `REDDIT_CLIENT_SECRET`. The daily cron fetches and caches the top 2 posts per tracked ticker (so the live page never calls Reddit directly).
+
+**Note:** the trend **accrues forward** — ApeWisdom's free feed only exposes "now" vs "24h ago", so history can't be backfilled. The chart starts the day the cron begins recording and fills in over weeks/months (a real 6-month trend after ~6 months). Featured pages show a clearly-labeled illustrative trend until real data accumulates.

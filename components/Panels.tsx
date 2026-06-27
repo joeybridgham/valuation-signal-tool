@@ -1,7 +1,9 @@
 "use client";
+import { useState } from "react";
 import type { AnalyzeResult } from "@/lib/types";
 import type { Valuation } from "@/lib/valuation";
-import { fmtUSD, fmtPct, fmtNum, compact, fmtDate, titleCase } from "@/lib/format";
+import { fmtUSD, fmtPct, fmtNum, fmtDate, titleCase } from "@/lib/format";
+import { MentionsTrend } from "./Charts";
 
 export function KpiRow({ data, valuation }: { data: AnalyzeResult; valuation: Valuation }) {
   const mos = valuation.marginOfSafety;
@@ -64,22 +66,84 @@ export function CongressTrades({ data }: { data: AnalyzeResult }) {
   );
 }
 
+function BuzzBars({ prior, now, change }: { prior: number; now: number; change: number | null }) {
+  const max = Math.max(prior, now, 1);
+  const base = 70, top = 12, h = (v: number) => Math.max(3, (v / max) * (base - top));
+  const up = (change ?? 0) >= 0;
+  const bars = [{ x: 30, v: prior, label: "24h ago", c: "var(--muted)" }, { x: 150, v: now, label: "now", c: up ? "var(--pos)" : "var(--neg)" }];
+  return (
+    <svg viewBox="0 0 250 96" style={{ width: "100%", maxWidth: 230, height: "auto" }} role="img" aria-label="Mentions 24h ago vs now">
+      <line x1={14} y1={base} x2={236} y2={base} style={{ stroke: "var(--line)" }} strokeWidth={1} />
+      {bars.map((b, i) => (
+        <g key={i}>
+          <rect x={b.x} y={base - h(b.v)} width={70} height={h(b.v)} rx={3} style={{ fill: b.c }} opacity={i === 0 ? 0.5 : 0.9} />
+          <text x={b.x + 35} y={base - h(b.v) - 5} textAnchor="middle" style={{ fill: "var(--ink)", fontFamily: "var(--font-mono)", fontSize: 12, fontWeight: 600 }}>{fmtNum(b.v, 0)}</text>
+          <text x={b.x + 35} y={base + 14} textAnchor="middle" style={{ fill: "var(--muted)", fontFamily: "var(--font-mono)", fontSize: 10 }}>{b.label}</text>
+        </g>
+      ))}
+      <text x={125} y={24} textAnchor="middle" style={{ fill: up ? "var(--pos)" : "var(--neg)", fontFamily: "var(--font-mono)", fontSize: 13, fontWeight: 600 }}>{up ? "▲" : "▼"} {fmtPct(change, 0, true)}</text>
+    </svg>
+  );
+}
+
+const RANGES: { label: string; days: number }[] = [{ label: "1M", days: 30 }, { label: "3M", days: 90 }, { label: "6M", days: 180 }];
+
 export function RetailBuzz({ data }: { data: AnalyzeResult }) {
   const b = data.buzz;
+  const hist = data.mentionHistory ?? [];
+  const posts = data.redditPosts ?? [];
+  const [days, setDays] = useState(90);
+  const searchUrl = `https://www.reddit.com/search/?q=${encodeURIComponent("$" + data.meta.symbol)}`;
+  const hasTrend = hist.length >= 5;
+
   return (
     <div className="card">
-      <div className="section-head"><div><div className="eyebrow">Retail</div><div className="section-title" style={{ fontSize: "1.1rem" }}>Reddit buzz</div></div></div>
-      {!b.found ? (
-        <div className="empty"><div className="ic">💬</div><div className="t">Low retail chatter</div><p className="muted small">{data.meta.symbol} isn't in ApeWisdom's ranked mention list right now.</p></div>
+      <div className="section-head">
+        <div><div className="eyebrow">Retail</div><div className="section-title" style={{ fontSize: "1.1rem" }}>Reddit mentions</div></div>
+        {b.found && b.rank != null && <span className="badge badge-ink">rank #{b.rank}</span>}
+      </div>
+
+      {!b.found && !hasTrend ? (
+        <div className="empty"><div className="ic">💬</div><div className="t">Low retail chatter</div><p className="muted small">{data.meta.symbol} isn't in ApeWisdom's ranked list right now.</p></div>
       ) : (
-        <div className="kpi-row" style={{ gridTemplateColumns: "1fr 1fr" }}>
-          <div className="kpi"><div className="kpi-label">Mentions (24h)</div><div className="kpi-value sm">{fmtNum(b.mentions ?? 0, 0)}</div></div>
-          <div className="kpi"><div className="kpi-label">24h change</div><div className={`kpi-value sm ${(b.change24hPct ?? 0) >= 0 ? "delta-pos" : "delta-neg"}`}>{fmtPct(b.change24hPct, 0, true)}</div></div>
-          <div className="kpi"><div className="kpi-label">Rank</div><div className="kpi-value sm">#{b.rank ?? "—"}</div></div>
-          <div className="kpi"><div className="kpi-label">Upvotes</div><div className="kpi-value sm">{fmtNum(b.upvotes ?? 0, 0)}</div></div>
-        </div>
+        <>
+          {hasTrend ? (
+            <>
+              <div className="row spread center" style={{ marginBottom: 4 }}>
+                <span className="muted small">Mentions over time</span>
+                <div className="seg no-print">
+                  {RANGES.map((r) => (
+                    <button key={r.days} className={`seg-btn ${days === r.days ? "on" : ""}`} onClick={() => setDays(r.days)}>{r.label}</button>
+                  ))}
+                </div>
+              </div>
+              <MentionsTrend history={hist} days={days} />
+            </>
+          ) : (
+            b.found && <div style={{ textAlign: "center" }}><BuzzBars prior={b.mentions24hAgo ?? 0} now={b.mentions ?? 0} change={b.change24hPct} /></div>
+          )}
+
+          <div className="kpi-row" style={{ gridTemplateColumns: "1fr 1fr 1fr", marginTop: 10 }}>
+            <div className="kpi"><div className="kpi-label">Mentions</div><div className="kpi-value sm">{fmtNum(b.mentions ?? (hist.at(-1)?.mentions ?? 0), 0)}</div></div>
+            <div className="kpi"><div className="kpi-label">24h change</div><div className={`kpi-value sm ${(b.change24hPct ?? 0) >= 0 ? "delta-pos" : "delta-neg"}`}>{b.change24hPct != null ? fmtPct(b.change24hPct, 0, true) : "—"}</div></div>
+            <div className="kpi"><div className="kpi-label">Upvotes</div><div className="kpi-value sm">{fmtNum(b.upvotes ?? 0, 0)}</div></div>
+          </div>
+        </>
       )}
-      <p className="muted small" style={{ marginTop: 10 }}>Source: ApeWisdom. Mention volume and its 24h change — a spike signals attention, not direction.</p>
+
+      {/* Reddit posts */}
+      <div className="reddit-posts">
+        <div className="sources-h" style={{ marginTop: 14 }}>Discussion</div>
+        {posts.length > 0 ? posts.slice(0, 2).map((p, i) => (
+          <a className="news-item" key={i} href={p.url} target="_blank" rel="noreferrer">
+            <div className="news-head">{p.title}</div>
+            <div className="news-meta">{p.subreddit} · ▲ {fmtNum(p.score, 0)} · {fmtDate(p.created)}</div>
+          </a>
+        )) : <p className="muted small">No cached threads yet — browse the live discussion below.</p>}
+        <a className="btn btn-sm btn-ghost" href={searchUrl} target="_blank" rel="noreferrer" style={{ marginTop: 10 }}>View discussions on Reddit ↗</a>
+      </div>
+
+      <p className="muted small" style={{ marginTop: 10 }}>Source: ApeWisdom (mention volume) + Reddit. {hasTrend ? "Trend builds from daily snapshots." : "Free feed shows the last 24h; a multi-day trend builds once daily snapshots are recording."}</p>
     </div>
   );
 }
@@ -104,7 +168,7 @@ export function SampleBanner({ data }: { data: AnalyzeResult }) {
   return (
     <div className="sample-banner no-print">
       <span className="tag-sample">Sample data</span>
-      <span className="small">Illustrative numbers shown until the first build with API keys. Set <code>FMP_API_KEY</code> and <code>ANTHROPIC_API_KEY</code> and redeploy to populate live data.</span>
+      <span className="small">Illustrative numbers shown until the first build with API keys. Set <code>FMP_API_KEY</code> (and <code>GEMINI_API_KEY</code>) and redeploy to populate live data.</span>
     </div>
   );
 }

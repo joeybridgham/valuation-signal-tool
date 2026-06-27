@@ -157,6 +157,8 @@ export interface AnalyzeResult {
   fearGreed: FearGreed;
   news: NewsItem[];
   sources: Provenance;
+  mentionHistory?: MentionPoint[];
+  redditPosts?: RedditLink[];
 }
 
 // ---- Narrative ----
@@ -195,4 +197,19 @@ export interface Provenance {
   market?: SourceRef;   // price / quote as-of
   peers?: SourceRef;
   analyst?: SourceRef;
+}
+
+// ---- Persisted retail-buzz history + cached Reddit posts ----
+export interface MentionPoint {
+  date: string;
+  mentions: number;
+  rank?: number | null;
+  upvotes?: number;
+}
+export interface RedditLink {
+  title: string;
+  url: string;
+  subreddit: string;
+  score: number;
+  created: string;
 }
