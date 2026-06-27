@@ -1,0 +1,119 @@
+// ============================================================================
+// getAnalysis(symbol) — the single orchestrator used by /api/analyze AND by the
+// statically-generated featured pages. Fetches FMP + ApeWisdom + CNN in
+// parallel, computes WACC / cost of equity / default assumptions, and assembles
+// the AnalyzeResult payload (every raw input the client needs to recompute).
+//
+// No FMP key? Featured tickers return their labeled SAMPLE snapshot; anything
+// else returns null so the caller can show a "configure key" state.
+// ============================================================================
+
+import type { AnalyzeResult, MarketData, Fundamentals, Rates, Assumptions } from "./types";
+import { getFmpBundle, hasFmpKey } from "./fmp";
+import { getBuzz } from "./apewisdom";
+import { getFearGreed } from "./feargreed";
+import { clamp } from "./valuation";
+import { SAMPLES } from "./sampleData";
+
+const ERP = 0.05; // equity risk premium default
+
+export interface Defaults {
+  defaults: Assumptions;
+  costEquity: number;
+  waccFallback: boolean;
+  notes: string[];
+}
+
+export function computeDefaults(m: MarketData, f: Fundamentals, rates: Rates): Defaults {
+  const notes: string[] = [];
+  const beta = clamp(m.beta || 1, 0.4, 2.2);
+  const costEquity = rates.riskFree + beta * rates.equityRiskPremium;
+
+  let costDebt = f.totalDebt > 0 && f.interestExpense > 0 ? f.interestExpense / f.totalDebt : rates.riskFree + 0.02;
+  costDebt = clamp(costDebt, rates.riskFree + 0.005, 0.15);
+  const afterTaxDebt = costDebt * (1 - f.taxRate);
+
+  const E = Math.max(0, m.marketCap);
+  const D = Math.max(0, f.totalDebt);
+  const V = E + D;
+  let wacc = V > 0 ? (E / V) * costEquity + (D / V) * afterTaxDebt : costEquity;
+
+  const terminalGrowth = 0.025;
+  let waccFallback = false;
+  if (!isFinite(wacc) || wacc <= terminalGrowth + 0.01 || wacc > 0.25) {
+    wacc = 0.09; waccFallback = true;
+    notes.push("WACC was unstable for this name — fell back to a flat 9% discount rate.");
+  }
+
+  // stage-1 growth default: trailing FCF CAGR, capped to avoid runaway values.
+  let g1: number | null = null;
+  const h = f.fcfHistory;
+  if (h.length >= 2) {
+    const newest = h[0], oldest = h[h.length - 1], n = h.length - 1;
+    if (newest > 0 && oldest > 0) g1 = Math.pow(newest / oldest, 1 / n) - 1;
+  }
+  if (g1 == null || !isFinite(g1)) g1 = 0.08;
+  g1 = clamp(g1, 0, 0.25);
+
+  return {
+    defaults: { stage1Growth: round4(g1), terminalGrowth, wacc: round4(wacc), horizon: 5 },
+    costEquity: round4(costEquity), waccFallback, notes,
+  };
+}
+
+function round4(x: number) { return Math.round(x * 1e4) / 1e4; }
+
+export async function getAnalysis(symbol: string): Promise<AnalyzeResult | null> {
+  const sym = symbol.toUpperCase().trim().replace(/[^A-Z.\-]/g, "");
+  if (!sym) return null;
+
+  // No key -> sample (featured only)
+  if (!hasFmpKey()) {
+    const sample = SAMPLES[sym];
+    if (!sample) return null;
+    return recomputeSampleDefaults(sample);
+  }
+
+  const [bundle, buzz, fearGreed] = await Promise.all([getFmpBundle(sym), getBuzz(sym), getFearGreed()]);
+  if (!bundle) {
+    // FMP returned nothing usable — if it's a featured ticker, fall back to sample.
+    const sample = SAMPLES[sym];
+    return sample ? recomputeSampleDefaults(sample) : null;
+  }
+
+  const rates: Rates = { riskFree: bundle.riskFree, equityRiskPremium: ERP, riskFreeIsFallback: bundle.riskFreeIsFallback };
+  const d = computeDefaults(bundle.market, bundle.fundamentals, rates);
+  const today = new Date().toISOString().slice(0, 10);
+
+  return {
+    meta: {
+      symbol: sym, name: bundle.meta.name, exchange: bundle.meta.exchange, sector: bundle.meta.sector,
+      industry: bundle.meta.industry, currency: bundle.meta.currency, asOf: today, priceAsOf: bundle.meta.priceAsOf,
+      isSample: false, notes: [...bundle.notes, ...d.notes],
+    },
+    market: bundle.market,
+    fundamentals: bundle.fundamentals,
+    ownMultiples: bundle.ownMultiples,
+    peers: bundle.peers,
+    analyst: bundle.analyst,
+    rates,
+    defaults: d.defaults,
+    costEquity: d.costEquity,
+    waccFallback: d.waccFallback,
+    dividendPayer: bundle.fundamentals.dividendPerShare > 0,
+    fmpDcf: bundle.fmpDcf,
+    priceSeries: bundle.priceSeries,
+    histMultiples: bundle.histMultiples,
+    congress: bundle.congress,
+    buzz,
+    fearGreed,
+    news: bundle.news,
+    sources: bundle.sources,
+  };
+}
+
+// Even for sample data we run the real WACC/defaults math so sliders start sensibly.
+function recomputeSampleDefaults(sample: AnalyzeResult): AnalyzeResult {
+  const d = computeDefaults(sample.market, sample.fundamentals, sample.rates);
+  return { ...sample, defaults: d.defaults, costEquity: d.costEquity, waccFallback: d.waccFallback };
+}
