@@ -14,7 +14,7 @@ export default function FootballField({ valuation, onSelect }: { valuation: Valu
     rows.push({
       key: m.key, label: m.label, sublabel: m.sublabel,
       low: Math.min(m.low, m.high), high: Math.max(m.low, m.high), mid: m.mid,
-      kind: m.key === "analyst" ? "analyst" : m.key === "asset" ? "asset" : "intrinsic",
+      kind: (m.key as string) === "analyst" ? "analyst" : (m.key as string) === "asset" ? "asset" : "intrinsic",
       stale: m.stale, staleMonths: m.staleAgeMonths,
     });
   }
