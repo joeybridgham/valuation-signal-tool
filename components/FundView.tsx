@@ -39,10 +39,12 @@ export default function FundView({ data }: { data: AnalyzeResult }) {
         {data.meta.sector ? `Category: ${data.meta.sector} · ` : ""}Fund data: Alpha Vantage. A fund, so no valuation football field or congressional section (those don't apply).
       </p>
 
-      <section className="card no-print">
-        <div className="section-head"><div><div className="eyebrow">Price</div><div className="section-title">Price history</div></div></div>
-        {data.priceSeries.length > 5 ? <PriceChart series={data.priceSeries} /> : <div className="empty"><div className="t">No price history available</div></div>}
-      </section>
+      {data.priceSeries.length >= 5 && (
+        <section className="card no-print">
+          <div className="section-head"><div><div className="eyebrow">Price</div><div className="section-title">Price history</div></div></div>
+          <PriceChart series={data.priceSeries} />
+        </section>
+      )}
 
       <section className="card">
         <div className="section-head"><div><div className="eyebrow">Composition</div><div className="section-title">Top holdings</div></div></div>

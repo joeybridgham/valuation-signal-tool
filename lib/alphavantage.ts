@@ -59,3 +59,37 @@ export async function avEtfProfile(symbol: string): Promise<FundData | null> {
     sectors, holdings: holdings.sort((a, b) => b.weight - a.weight),
   };
 }
+
+export interface AvStatements {
+  freeCashFlow: number | null; fcfHistory: number[]; netDebt: number | null; cash: number | null;
+  totalDebt: number | null; ebitda: number | null; revenue: number | null; taxRate: number | null;
+  bookValuePerShare: number | null; shares: number | null;
+}
+export async function avStatements(symbol: string): Promise<AvStatements | null> {
+  const [cf, bs, is] = await Promise.all([
+    getJson<any>(av("CASH_FLOW", { symbol }), { revalidate: 60 * 60 * 24 }),
+    getJson<any>(av("BALANCE_SHEET", { symbol }), { revalidate: 60 * 60 * 24 }),
+    getJson<any>(av("INCOME_STATEMENT", { symbol }), { revalidate: 60 * 60 * 24 }),
+  ]);
+  if (limited(cf) && limited(bs) && limited(is)) return null;
+  const cfa: any[] = cf?.annualReports ?? [];
+  const bs0: any = (bs?.annualReports ?? [])[0] ?? {};
+  const is0: any = (is?.annualReports ?? [])[0] ?? {};
+  if (!cfa.length && !Object.keys(bs0).length && !Object.keys(is0).length) return null;
+  const fcfHistory = cfa.map((r) => {
+    const op = num(r.operatingCashflow); const capex = num(r.capitalExpenditures);
+    return op != null && capex != null ? op - capex : NaN;
+  }).filter((x) => isFinite(x)) as number[];
+  const totalDebt = num(bs0.shortLongTermDebtTotal) ?? ((num(bs0.shortTermDebt) ?? 0) + (num(bs0.longTermDebt) ?? 0));
+  const cash = num(bs0.cashAndShortTermInvestments) ?? num(bs0.cashAndCashEquivalentsAtCarryingValue);
+  const equity = num(bs0.totalShareholderEquity);
+  const shares = num(bs0.commonStockSharesOutstanding);
+  const ibt = num(is0.incomeBeforeTax); const tax = num(is0.incomeTaxExpense);
+  return {
+    freeCashFlow: fcfHistory[0] ?? null, fcfHistory, cash, totalDebt,
+    netDebt: totalDebt != null && cash != null ? totalDebt - cash : null,
+    ebitda: num(is0.ebitda), revenue: num(is0.totalRevenue),
+    taxRate: ibt && ibt > 0 && tax != null ? Math.max(0, Math.min(0.35, tax / ibt)) : null,
+    bookValuePerShare: equity != null && shares ? equity / shares : null, shares,
+  };
+}
