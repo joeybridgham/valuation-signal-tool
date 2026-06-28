@@ -3,14 +3,14 @@ import Link from "next/link";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Valuation & Signal — Joey Bridgham",
+  title: "Valuation & Signal, Joey Bridgham",
   description:
     "An educational stock valuation & signal tool: multi-method football field, reverse-DCF, a transparent conditions scorecard, congressional trades, retail buzz, and a market Fear & Greed read. Not investment advice.",
   metadataBase: new URL("https://example.vercel.app"),
   openGraph: {
     title: "Valuation & Signal",
     description:
-      "Multi-method valuation, reverse-DCF, and a transparent signal scorecard. Educational — not investment advice.",
+      "Multi-method valuation, reverse-DCF, and a transparent signal scorecard. Educational, not investment advice.",
     type: "website",
   },
   robots: { index: true, follow: true },

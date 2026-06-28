@@ -67,6 +67,7 @@ export interface PeerData {
   medianPE: number | null;
   medianEvEbitda: number | null;
   medianPS: number | null;
+  medianPB: number | null;
 }
 
 export interface AnalystData {
@@ -161,6 +162,7 @@ export interface AnalyzeResult {
   redditPosts?: RedditLink[];
   kind?: SecurityKind;
   fund?: FundData;
+  dataSource?: string;
 }
 
 // ---- Narrative ----

@@ -3,7 +3,7 @@
 //  - Prices come from Stooq (free/unlimited) so charts never burn FMP budget.
 //  - Peers come from Finnhub (free) when configured, else a built-in set.
 //  - Gated FMP endpoints (Congress, analyst targets, treasury, key-metrics) are
-//    NOT called on the free plan — they only wasted the 250/day budget.
+//    NOT called on the free plan, they only wasted the 250/day budget.
 //  - getLiteBundle() is a Finnhub+Stooq fallback used when FMP is exhausted, so
 //    the page still loads (price, comps, technicals, narrative) without DCF.
 // ============================================================================
@@ -80,8 +80,8 @@ async function getPeers(sym: string, notes: string[]): Promise<PeerData> {
       peers = syms.map((s) => ({ symbol: s, pe: null, evEbitda: null, ps: null, pb: null }));
     }
   }
-  if (!peers.length) notes.push("No peer set available — relative valuation unavailable.");
-  return { peers, medianPE: median(peers.map((p) => posv(p.pe))), medianEvEbitda: median(peers.map((p) => posv(p.evEbitda))), medianPS: median(peers.map((p) => posv(p.ps))) };
+  if (!peers.length) notes.push("No peer set available, relative valuation unavailable.");
+  return { peers, medianPE: median(peers.map((p) => posv(p.pe))), medianEvEbitda: median(peers.map((p) => posv(p.evEbitda))), medianPS: median(peers.map((p) => posv(p.ps))), medianPB: median(peers.map((p) => posv(p.pb))) };
 }
 
 const blankSources = (today: string): Provenance => ({
@@ -112,7 +112,7 @@ export async function getFmpBundle(symbol: string): Promise<FmpBundle | null> {
 
   const income = arr(incomeR), cashflow = arr(cashflowR);
   const inc0 = income[0] ?? {}, bal0 = first(balanceR) ?? {}, cf0 = cashflow[0] ?? {}, ratios = first(ratiosTtmR);
-  if (!cashflow.length) notes.push("FMP cash-flow statement returned no rows — DCF unavailable for this name.");
+  if (!cashflow.length) notes.push("FMP cash-flow statement returned no rows, DCF unavailable for this name.");
 
   const price = pick(quote, "price") ?? pick(profile, "price") ?? 0;
   const shares = pick(quote, "sharesOutstanding") ?? pick(profile, "sharesOutstanding") ?? (price > 0 ? (pick(quote, "marketCap") ?? pick(profile, "marketCap") ?? 0) / price : 0);
@@ -130,6 +130,7 @@ export async function getFmpBundle(symbol: string): Promise<FmpBundle | null> {
   const totalDebt = pick(bal0, "totalDebt") ?? ((pick(bal0, "shortTermDebt") ?? 0) + (pick(bal0, "longTermDebt") ?? 0));
   const cash = pick(bal0, "cashAndShortTermInvestments", "cashAndCashEquivalents") ?? 0;
   const netDebt = pick(bal0, "netDebt") ?? (totalDebt - cash);
+  const equity = pick(bal0, "totalStockholdersEquity", "totalEquity", "totalShareholdersEquity") ?? 0;
   const ebitda = pick(inc0, "ebitda", "EBITDA") ?? 0;
   const revenue = pick(inc0, "revenue") ?? 0;
   const ibt = pick(inc0, "incomeBeforeTax", "preTaxIncome"); const tax = pick(inc0, "incomeTaxExpense");
@@ -138,8 +139,9 @@ export async function getFmpBundle(symbol: string): Promise<FmpBundle | null> {
 
   const fundamentals: Fundamentals = {
     freeCashFlow: fcfHistory[0] ?? 0, fcfHistory, ebitda, epsTTM: pick(quote, "eps") ?? pick(inc0, "epsDiluted", "epsdiluted", "eps") ?? 0,
-    revenue, revenuePerShare: shares > 0 ? revenue / shares : 0, bookValuePerShare: 0,
+    revenue, revenuePerShare: shares > 0 ? revenue / shares : 0,
     netDebt, totalDebt, cash, interestExpense: pick(inc0, "interestExpense") ?? 0, taxRate, dividendPerShare: dividend,
+    bookValuePerShare: shares > 0 && equity > 0 ? equity / shares : 0,
   };
   const ownEvEbitda = ebitda > 0 ? (marketCap + netDebt) / ebitda : null;
   const ownMultiples: OwnMultiples = {
@@ -155,7 +157,7 @@ export async function getFmpBundle(symbol: string): Promise<FmpBundle | null> {
     const rows = Array.isArray(priceR) ? priceR : arr((priceR as any)?.historical);
     series = rows.map((p: any) => ({ date: String(p.date).slice(0, 10), close: num(p.close ?? p.adjClose) ?? NaN, volume: num(p.volume) ?? undefined })).filter((p: PricePoint) => isFinite(p.close)).reverse();
   }
-  if (series.length < 30) notes.push("Sparse price history — some technicals may be limited.");
+  if (series.length < 30) notes.push("Sparse price history, some technicals may be limited.");
 
   const news: NewsItem[] = arr(newsR).slice(0, 8).map((n: any) => ({ title: String(n.title ?? "").trim(), site: String(n.site ?? n.publisher ?? "").trim(), url: String(n.url ?? n.link ?? "#"), publishedDate: String(n.publishedDate ?? n.date ?? "").slice(0, 19) })).filter((n) => n.title);
 
@@ -198,7 +200,7 @@ export async function getLiteBundle(symbol: string): Promise<FmpBundle | null> {
   if (price == null && series.length) price = series.at(-1)!.close;
   if (price == null && !series.length) return null;
 
-  notes.push(`Live FMP budget exhausted — lighter read via ${src || "Stooq"} (+ Stooq prices). DCF needs FMP's statements and resumes at the daily reset.`);
+  notes.push(`Live FMP budget exhausted, lighter read via ${src || "Stooq"} (+ Stooq prices). DCF needs FMP's statements and resumes at the daily reset.`);
   const peers = await getPeers(sym, notes);
   const market: MarketData = { price: price ?? 0, dayChange: change, dayChangePct: changePct, marketCap: marketCap || (price && shares ? price * shares : 0), sharesOutstanding: shares, beta };
   const fundamentals: Fundamentals = { freeCashFlow: 0, fcfHistory: [], ebitda: 0, epsTTM: eps, revenue: 0, revenuePerShare: 0, bookValuePerShare: 0, netDebt: 0, totalDebt: 0, cash: 0, interestExpense: 0, taxRate: 0.21, dividendPerShare: dividend };

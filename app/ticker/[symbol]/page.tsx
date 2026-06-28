@@ -38,7 +38,7 @@ export default function LiveTickerPage({ params }: { params: { symbol: string } 
     return (
       <div className="stack" style={{ gap: 18, marginTop: 20 }}>
         <div className="row center" style={{ gap: 10 }}>
-          <span className="spinner" /><span className="muted">Analyzing <strong>{symbol}</strong> — fetching fundamentals, prices, peers, signals…</span>
+          <span className="spinner" /><span className="muted">Analyzing <strong>{symbol}</strong>, fetching fundamentals, prices, peers, signals…</span>
         </div>
         <div className="skeleton" style={{ height: 90 }} />
         <div className="grid grid-5-2">

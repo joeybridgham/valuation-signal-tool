@@ -27,6 +27,6 @@ export async function GET(req: NextRequest) {
       headers: { "Cache-Control": "public, s-maxage=43200, stale-while-revalidate=86400" },
     });
   } catch {
-    return NextResponse.json({ error: "Analysis failed — please try again." }, { status: 500 });
+    return NextResponse.json({ error: "Analysis failed, please try again." }, { status: 500 });
   }
 }

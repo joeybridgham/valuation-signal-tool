@@ -1,5 +1,5 @@
 /* ============================================================================
-   Valuation & Signal — editorial design system
+   Valuation & Signal, editorial design system
    Warm cream/parchment, deep warm ink, restrained clay accent.
    Display: Fraunces · Body/UI: Inter Tight · All numerics: JetBrains Mono
    ========================================================================== */
@@ -19,12 +19,12 @@
   --line:   #DACEB6;
   --line-2: #E7DDC8;
 
-  /* accent — clay / terracotta */
+  /* accent, clay / terracotta */
   --accent:      #B0542B;
   --accent-2:    #8C3F1E;
   --accent-wash: rgba(176, 84, 43, 0.10);
 
-  /* secondary highlight — muted ochre */
+  /* secondary highlight, muted ochre */
   --gold: #B0863A;
 
   /* direction signals (muted, never neon) */
@@ -362,3 +362,7 @@ summary { cursor: pointer; font-family: var(--font-mono); font-size: 0.78rem; co
 .tech-read { margin-top: 8px; }
 .tech-list { margin: 6px 0 8px; padding-left: 18px; }
 .tech-list li { font-size: 0.9rem; color: var(--ink-2); margin: 3px 0; }
+
+/* asset-floor football-field row */
+.ff-bar.asset { background: var(--paper-3); border-color: var(--ink-2); }
+.ff-mid.asset { background: var(--ink-2); }

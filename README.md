@@ -1,6 +1,6 @@
 # Valuation & Signal
 
-An educational stock valuation and signal tool: a multi-method valuation **football field**, a **reverse-DCF**, adjustable assumptions, and a transparent **conditions scorecard** that folds in congressional trades, Reddit buzz, and the market-wide Fear & Greed reading — with an AI-generated bull/base/bear synthesis grounded in the computed numbers.
+An educational stock valuation and signal tool: a multi-method valuation **football field**, a **reverse-DCF**, adjustable assumptions, and a transparent **conditions scorecard** that folds in congressional trades, Reddit buzz, and the market-wide Fear & Greed reading, with an AI-generated bull/base/bear synthesis grounded in the computed numbers.
 
 Built by Joey Bridgham as a portfolio piece. **Educational tool. Not investment advice.**
 
@@ -10,19 +10,19 @@ Built by Joey Bridgham as a portfolio piece. **Educational tool. Not investment 
 
 ## What it does
 
-- **Football field** — DCF (two-stage FCFF), relative valuation (peer P/E · EV/EBITDA · P/S), dividend discount model (payers), and the analyst target range, each as a value bar, with a **blended fair value** and **margin of safety**.
-- **Reverse DCF** — the annual FCF growth the current price implies, recomputed as you move the sliders.
-- **Adjustable assumptions** — stage-1 growth, terminal growth, WACC, and horizon. Everything recomputes **client-side** with no extra API calls.
-- **Conditions scorecard** — valuation, technicals, analyst upside, market timing (Fear & Greed, read contrarian), and retail buzz, combined into one label with **adjustable weights**. Every input is visible.
-- **Bull / Base / Bear** — an AI synthesis (Anthropic) grounded only in the computed numbers.
+- **Football field**, DCF (two-stage FCFF), relative valuation (peer P/E · EV/EBITDA · P/S), dividend discount model (payers), and the analyst target range, each as a value bar, with a **blended fair value** and **margin of safety**.
+- **Reverse DCF**, the annual FCF growth the current price implies, recomputed as you move the sliders.
+- **Adjustable assumptions**, stage-1 growth, terminal growth, WACC, and horizon. Everything recomputes **client-side** with no extra API calls.
+- **Conditions scorecard**, valuation, technicals, analyst upside, market timing (Fear & Greed, read contrarian), and retail buzz, combined into one label with **adjustable weights**. Every input is visible.
+- **Bull / Base / Bear**, an AI synthesis (Anthropic) grounded only in the computed numbers.
 - **Congressional trades** (House + Senate), **Reddit buzz** (ApeWisdom), **CNN Fear & Greed** gauge.
-- **Technical charts** — price with 50/200-day SMAs, RSI(14), and the 52-week range — all hand-drawn SVG in the editorial palette.
+- **Technical charts**, price with 50/200-day SMAs, RSI(14), and the 52-week range, all hand-drawn SVG in the editorial palette.
 - **Historical valuation trend**, **news feed**, a **localStorage watchlist**, and a one-page **PDF export** (print stylesheet).
-- **Calculation & source transparency** — per-method breakdowns, SEC filing links, and a **staleness flag** for annual data older than a year.
+- **Calculation & source transparency**, per-method breakdowns, SEC filing links, and a **staleness flag** for annual data older than a year.
 
 ## Stack
 
-- **Next.js 14 (App Router)** + React 18 + TypeScript, one repo / one Vercel project (frontend and serverless API routes together — no CORS).
+- **Next.js 14 (App Router)** + React 18 + TypeScript, one repo / one Vercel project (frontend and serverless API routes together, no CORS).
 - No charting or UI library: charts are inline SVG, styling is a single editorial stylesheet (Fraunces / Inter Tight / JetBrains Mono).
 - Deploys on the **Vercel Hobby (free) tier**.
 
@@ -30,9 +30,9 @@ Built by Joey Bridgham as a portfolio piece. **Educational tool. Not investment 
 
 - **Featured tickers are statically generated at build time** (`/stock/[symbol]`) and revalidated daily (ISR, `revalidate = 86400`). They load instantly and never hit the live path.
 - **Live lookups use two separate API routes** so neither approaches 10s:
-  - `GET /api/analyze` — fetches FMP + ApeWisdom + CNN in parallel, runs the valuation math, and returns **all the raw inputs** the browser needs (FCF, shares, net debt, EBITDA, EPS, revenue, peer multiples, beta, risk-free rate, dividend, price, and the full daily price series). With that payload the sliders, charts, reverse-DCF, watchlist, and PDF all run client-side.
-  - `POST /api/narrative` — the Anthropic bull/base/bear call, made **lazily from the client after the numbers render**, with its own 10s budget and a tight prompt.
-- **Caching** — `/api/analyze` sets `Cache-Control: s-maxage=43200`, and all upstream fetches use Next data-cache windows, protecting the FMP free-tier budget.
+  - `GET /api/analyze`, fetches FMP + ApeWisdom + CNN in parallel, runs the valuation math, and returns **all the raw inputs** the browser needs (FCF, shares, net debt, EBITDA, EPS, revenue, peer multiples, beta, risk-free rate, dividend, price, and the full daily price series). With that payload the sliders, charts, reverse-DCF, watchlist, and PDF all run client-side.
+  - `POST /api/narrative`, the Anthropic bull/base/bear call, made **lazily from the client after the numbers render**, with its own 10s budget and a tight prompt.
+- **Caching**, `/api/analyze` sets `Cache-Control: s-maxage=43200`, and all upstream fetches use Next data-cache windows, protecting the FMP free-tier budget.
 - **No remote image optimization** (`images.unoptimized = true`) to avoid Vercel bandwidth charges.
 
 ---
@@ -59,11 +59,11 @@ Set these in `.env.local` for local dev **and** in Vercel → Project → Settin
 
 | Variable | Required | Where to get it |
 | --- | --- | --- |
-| `FMP_API_KEY` | yes (for live data) | https://site.financialmodelingprep.com/developer/docs — free tier, 250 calls/day |
+| `FMP_API_KEY` | yes (for live data) | https://site.financialmodelingprep.com/developer/docs, free tier, 250 calls/day |
 | `ANTHROPIC_API_KEY` | yes (for narratives) | https://console.anthropic.com/ |
 | `ANTHROPIC_MODEL` | optional | defaults to `claude-sonnet-4-6` |
 
-The moment you build with these set (locally or on Vercel), the featured pages fetch **real** FMP data and generate **real** Claude narratives and bake them into the static pages — replacing the sample snapshots automatically.
+The moment you build with these set (locally or on Vercel), the featured pages fetch **real** FMP data and generate **real** Claude narratives and bake them into the static pages, replacing the sample snapshots automatically.
 
 ---
 
@@ -87,7 +87,7 @@ The portfolio stays on GitHub Pages; this tool is a linked sub-app. Add a projec
 
 ```html
 <a class="feature" href="https://valuation-signal-tool.vercel.app" target="_blank" rel="noreferrer">
-  Valuation &amp; Signal — live valuation tool →
+  Valuation &amp; Signal, live valuation tool →
 </a>
 ```
 
@@ -99,16 +99,16 @@ It already matches the portfolio's type system (Fraunces / Inter Tight / JetBrai
 
 - **250 calls/day.** A fresh live lookup makes roughly 13–19 calls (core statements + up to 5 peer ratio calls + congressional + news + DCF + treasury). Daily caching means repeat lookups of the same ticker are effectively free, and the featured pages are build-time only.
 - To spend less, lower the peer cap in `getFmpBundle(symbol, peerLimit)` (default 5) in `lib/fmp.ts`.
-- **Endpoint paths live in one place:** the `FMP_PATHS` map at the top of `lib/fmp.ts`. They are verified against FMP's current **`stable`** namespace (June 2026). A few endpoints are **plan-gated** on some tiers — `senate-trades`, `house-trades`, `analyst-estimates`/`price-target-consensus`, and `treasury-rates`. If your key doesn't include them, the app **degrades gracefully** (empty congressional list, no analyst row, risk-free falls back to 4.3%). If FMP shifts a path, correct it once in `FMP_PATHS`.
+- **Endpoint paths live in one place:** the `FMP_PATHS` map at the top of `lib/fmp.ts`. They are verified against FMP's current **`stable`** namespace (June 2026). A few endpoints are **plan-gated** on some tiers, `senate-trades`, `house-trades`, `analyst-estimates`/`price-target-consensus`, and `treasury-rates`. If your key doesn't include them, the app **degrades gracefully** (empty congressional list, no analyst row, risk-free falls back to 4.3%). If FMP shifts a path, correct it once in `FMP_PATHS`.
 
 ## Valuation methodology (defaults)
 
-- **DCF** — two-stage FCFF, 5-year explicit horizon. Base FCF = latest operating cash flow − capex. Stage-1 growth defaults to the trailing FCF CAGR (capped at 25%). Terminal growth 2.5%. WACC = CAPM cost of equity (risk-free + β·5%) blended with after-tax cost of debt by capital structure; falls back to a flat 9% if unstable. The bar's width comes from flexing growth ±3 pts and WACC ∓0.75 pt.
-- **Comps** — peer-median P/E·EPS, EV/EBITDA·EBITDA, and P/S·revenue/share; range = the spread.
-- **DDM** — Gordon growth for dividend payers, growth capped below the cost of equity.
-- **Analyst** — consensus low/mean/high, shown as a separate market anchor (not blended).
-- **Reverse DCF** — bisection solve for the stage-1 growth that sets DCF intrinsic value = price.
-- **Blended fair value** — equal-weight of the available intrinsic midpoints (DCF, comps, DDM). **Margin of safety** = (blended − price) / price.
+- **DCF**, two-stage FCFF, 5-year explicit horizon. Base FCF = latest operating cash flow − capex. Stage-1 growth defaults to the trailing FCF CAGR (capped at 25%). Terminal growth 2.5%. WACC = CAPM cost of equity (risk-free + β·5%) blended with after-tax cost of debt by capital structure; falls back to a flat 9% if unstable. The bar's width comes from flexing growth ±3 pts and WACC ∓0.75 pt.
+- **Comps**, peer-median P/E·EPS, EV/EBITDA·EBITDA, and P/S·revenue/share; range = the spread.
+- **DDM**, Gordon growth for dividend payers, growth capped below the cost of equity.
+- **Analyst**, consensus low/mean/high, shown as a separate market anchor (not blended).
+- **Reverse DCF**, bisection solve for the stage-1 growth that sets DCF intrinsic value = price.
+- **Blended fair value**, equal-weight of the available intrinsic midpoints (DCF, comps, DDM). **Margin of safety** = (blended − price) / price.
 
 ## Scorecard methodology
 
@@ -142,14 +142,14 @@ Data sources: **Financial Modeling Prep**, **ApeWisdom**, **CNN Business Fear & 
 
 ### Free narrative via Google Gemini (recommended)
 
-The bull/base/bear narrative is provider-agnostic. Set **`GEMINI_API_KEY`** (Google AI Studio, free tier — no credit card: https://aistudio.google.com/) and it's used automatically; optionally `GEMINI_MODEL` (default `gemini-2.0-flash`). If instead you set `ANTHROPIC_API_KEY`, that's used. If neither is set, every other section still works and the narrative shows a clean "unavailable" note. The retail-buzz panel also draws a 24h mentions chart (now vs 24h ago) from ApeWisdom's free feed — a longer history would require recording daily snapshots (e.g. Vercel KV).
+The bull/base/bear narrative is provider-agnostic. Set **`GEMINI_API_KEY`** (Google AI Studio, free tier, no credit card: https://aistudio.google.com/) and it's used automatically; optionally `GEMINI_MODEL` (default `gemini-2.0-flash`). If instead you set `ANTHROPIC_API_KEY`, that's used. If neither is set, every other section still works and the narrative shows a clean "unavailable" note. The retail-buzz panel also draws a 24h mentions chart (now vs 24h ago) from ApeWisdom's free feed, a longer history would require recording daily snapshots (e.g. Vercel KV).
 
 ### Live mention history + Reddit posts (optional, free)
 
 The retail-buzz panel can show a multi-day mention **trend** (1M / 3M / 6M) and **2 Reddit posts** per stock. Both are optional and free, and the app works without them (24h chart + a "view on Reddit" link).
 
-1. **Storage** — in Vercel, add **Upstash Redis** (Storage / Marketplace → Upstash → free plan: 256 MB / 500K cmds-month). It auto-injects `KV_REST_API_URL` and `KV_REST_API_TOKEN`.
-2. **Cron secret** — add an env var `CRON_SECRET` set to any random string. `vercel.json` already schedules `/api/cron/snapshot` once daily; Vercel sends the secret automatically.
-3. **Reddit posts (optional)** — create a free "script" app at https://www.reddit.com/prefs/apps and add `REDDIT_CLIENT_ID` + `REDDIT_CLIENT_SECRET`. The daily cron fetches and caches the top 2 posts per tracked ticker (so the live page never calls Reddit directly).
+1. **Storage**, in Vercel, add **Upstash Redis** (Storage / Marketplace → Upstash → free plan: 256 MB / 500K cmds-month). It auto-injects `KV_REST_API_URL` and `KV_REST_API_TOKEN`.
+2. **Cron secret**, add an env var `CRON_SECRET` set to any random string. `vercel.json` already schedules `/api/cron/snapshot` once daily; Vercel sends the secret automatically.
+3. **Reddit posts (optional)**, create a free "script" app at https://www.reddit.com/prefs/apps and add `REDDIT_CLIENT_ID` + `REDDIT_CLIENT_SECRET`. The daily cron fetches and caches the top 2 posts per tracked ticker (so the live page never calls Reddit directly).
 
-**Note:** the trend **accrues forward** — ApeWisdom's free feed only exposes "now" vs "24h ago", so history can't be backfilled. The chart starts the day the cron begins recording and fills in over weeks/months (a real 6-month trend after ~6 months). Featured pages show a clearly-labeled illustrative trend until real data accumulates.
+**Note:** the trend **accrues forward**, ApeWisdom's free feed only exposes "now" vs "24h ago", so history can't be backfilled. The chart starts the day the cron begins recording and fills in over weeks/months (a real 6-month trend after ~6 months). Featured pages show a clearly-labeled illustrative trend until real data accumulates.

@@ -2,7 +2,7 @@
 // Labeled SAMPLE snapshots for the four featured tickers. Shown ONLY before the
 // first build with API keys; every one is tagged isSample=true and carries a
 // visible note. The build pipeline replaces these with real FMP+Claude data.
-// Numbers are illustrative and intentionally rounded — NOT live quotes.
+// Numbers are illustrative and intentionally rounded, NOT live quotes.
 // ============================================================================
 
 import type { AnalyzeResult, PricePoint, Narrative } from "./types";
@@ -23,7 +23,7 @@ function genSeries(seed: string, endPrice: number, days = 320, vol = 0.018, drif
   }));
 }
 
-const SAMPLE_NOTE = "Sample data — illustrative only. Replaced with live FMP data on the first build with API keys configured.";
+const SAMPLE_NOTE = "Sample data, illustrative only. Replaced with live FMP data on the first build with API keys configured.";
 const today = new Date().toISOString().slice(0, 10);
 
 interface Cfg {
@@ -54,7 +54,7 @@ function build(c: Cfg): AnalyzeResult {
     market: { price: c.price, dayChange: 0, dayChangePct: 0, marketCap: c.marketCap, sharesOutstanding: c.shares, beta: c.beta },
     fundamentals: { freeCashFlow: c.fcf, fcfHistory: [c.fcf, ...c.fcfPrev], ebitda: c.ebitda, epsTTM: c.eps, revenue: c.revenue, revenuePerShare, bookValuePerShare: Math.max(0, c.pb ? c.price / c.pb : 0), netDebt: c.netDebt, totalDebt: c.totalDebt, cash: c.cash, interestExpense: c.interestExpense, taxRate: c.taxRate, dividendPerShare: c.div },
     ownMultiples: { pe: c.pe, evEbitda: c.evEbitda, ps: c.ps, pb: c.pb },
-    peers: { peers: c.peers, medianPE: med(c.peers.map((p) => p.pe)), medianEvEbitda: med(c.peers.map((p) => p.evEbitda)), medianPS: med(c.peers.map((p) => p.ps)) },
+    peers: { peers: c.peers, medianPE: med(c.peers.map((p) => p.pe)), medianEvEbitda: med(c.peers.map((p) => p.evEbitda)), medianPS: med(c.peers.map((p) => p.ps)), medianPB: med(c.peers.map((p) => p.pb)) },
     analyst: { available: c.analyst.mean != null, targetLow: c.analyst.low, targetMean: c.analyst.mean, targetHigh: c.analyst.high, numAnalysts: c.analyst.n, estGrowth: null },
     rates: { riskFree: 0.043, equityRiskPremium: 0.05, riskFreeIsFallback: false },
     defaults: { stage1Growth: 0.1, terminalGrowth: 0.025, wacc: 0.09, horizon: 5 }, // recomputed in analyze()
@@ -158,7 +158,7 @@ export const SAMPLES: Record<string, AnalyzeResult> = {
     buzz: { found: false, rank: null, mentions: null, prior: null, up: null },
     congress: [],
     news: news([["SELLAS reports progress in Phase 3 AML program", "GlobeNewswire", monthsAgo(0)], ["Data readout timing updated for lead candidate", "BioPharma Dive", monthsAgo(2)]]),
-    notes: ["Clinical-stage biotech: negative cash flow means DCF and most comps are intentionally unavailable — a deliberate empty-state showcase."],
+    notes: ["Clinical-stage biotech: negative cash flow means DCF and most comps are intentionally unavailable, a deliberate empty-state showcase."],
   }),
 };
 
@@ -171,7 +171,7 @@ export const SAMPLE_NARRATIVES: Record<string, Narrative> = {
   META: { bull: "Sample narrative. With ~$52B free cash flow and an EV/EBITDA below the peer median, the DCF midpoint sits above the current $612 price; if AI investment converts to ad efficiency, the reverse-DCF growth bar looks beatable.", base: "Sample narrative. The blended fair value lands near the price, implying a modest margin of safety; the scorecard reads Mixed as stretched market greed offsets reasonable valuation.", bear: "Sample narrative. Heavy capex and Reality Labs losses could compress free cash flow; if growth undershoots the reverse-DCF implied rate, the multiple has room to de-rate.", generatedAt: today, model: "sample" },
   UNH: { bull: "Sample narrative. A high-teens P/E against a peer median in the low teens, plus a covered dividend feeding the DDM, supports intrinsic value above the price.", base: "Sample narrative. Blended fair value modestly exceeds price; defensive beta and contrarian fear give the scorecard a constructive but not extreme read.", bear: "Sample narrative. Medical-cost inflation and regulatory risk could pressure margins; if FCF growth slows below the reverse-DCF rate, downside opens up.", generatedAt: today, model: "sample" },
   HAL: { bull: "Sample narrative. Cyclical-trough multiples and a single-digit EV/EBITDA versus peers leave upside if the cycle turns; the analyst mean sits well above price.", base: "Sample narrative. Fair value is above price but the FY2024-dated filing warrants caution; the scorecard reads Mixed.", bear: "Sample narrative. Soft completions pricing and commodity sensitivity could keep free cash flow volatile, capping the DCF.", generatedAt: today, model: "sample" },
-  SLS: { bull: "Sample narrative. A binary clinical catalyst could re-rate the stock far above intrinsic cash-flow value; analyst high target is multiples of the current price.", base: "Sample narrative. With negative cash flow, intrinsic models do not apply — value rests on trial outcomes and the cash runway, not the football field.", bear: "Sample narrative. Cash burn against a small balance sheet implies dilution or financing risk; a trial miss could impair most of the equity value.", generatedAt: today, model: "sample" },
+  SLS: { bull: "Sample narrative. A binary clinical catalyst could re-rate the stock far above intrinsic cash-flow value; analyst high target is multiples of the current price.", base: "Sample narrative. With negative cash flow, intrinsic models do not apply, value rests on trial outcomes and the cash runway, not the football field.", bear: "Sample narrative. Cash burn against a small balance sheet implies dilution or financing risk; a trial miss could impair most of the equity value.", generatedAt: today, model: "sample" },
 };
 
 export function getSampleNarrative(symbol: string): Narrative | null {
@@ -199,48 +199,52 @@ function genSamplePosts(sym: string) {
   const today = new Date().toISOString().slice(0, 10);
   const wk = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
   return [
-    { title: `$${sym} — earnings & valuation discussion (sample)`, url: q, subreddit: "r/stocks", score: 480, created: today },
+    { title: `$${sym}, earnings & valuation discussion (sample)`, url: q, subreddit: "r/stocks", score: 480, created: today },
     { title: `Is $${sym} a buy at these levels? DD inside (sample)`, url: q, subreddit: "r/wallstreetbets", score: 310, created: wk },
   ];
 }
 
-// Sample ETF for the fund view (no keys needed to demo it).
-function buildFund(): AnalyzeResult {
-  const holdings = [
-    ["AAPL", "Apple Inc", 0.071], ["MSFT", "Microsoft Corp", 0.066], ["NVDA", "NVIDIA Corp", 0.061],
-    ["AMZN", "Amazon.com Inc", 0.038], ["META", "Meta Platforms Inc", 0.025], ["GOOGL", "Alphabet Inc Cl A", 0.021],
-    ["GOOG", "Alphabet Inc Cl C", 0.018], ["AVGO", "Broadcom Inc", 0.017], ["BRK.B", "Berkshire Hathaway", 0.016],
-    ["LLY", "Eli Lilly & Co", 0.014], ["TSLA", "Tesla Inc", 0.013], ["JPM", "JPMorgan Chase", 0.013],
-    ["XOM", "Exxon Mobil", 0.011], ["UNH", "UnitedHealth Group", 0.010], ["V", "Visa Inc", 0.009],
-    ["MA", "Mastercard Inc", 0.008], ["COST", "Costco Wholesale", 0.008], ["HD", "Home Depot", 0.007],
-  ].map(([symbol, name, weight]) => ({ symbol: symbol as string, name: name as string, weight: weight as number }));
-  const series = genSeries("VOO", 548);
+// Sample ETFs for the fund view (no keys needed to demo it).
+interface FundCfg {
+  symbol: string; name: string; exchange: string; price: number; netAssets: number; expenseRatio: number;
+  dividendYield: number; inception: string; category: string;
+  sectors: [string, number][]; holdings: [string, string, number][];
+  headlines: [string, string, string][];
+}
+function buildFund(c: FundCfg): AnalyzeResult {
+  const holdings = c.holdings.map(([symbol, name, weight]) => ({ symbol, name, weight }));
   return {
-    meta: { symbol: "VOO", name: "Vanguard S&P 500 ETF", exchange: "NYSE Arca", sector: "Large Blend", industry: "Index Fund", currency: "USD", asOf: today, priceAsOf: today, isSample: true, notes: [SAMPLE_NOTE] },
-    market: { price: 548.2, dayChange: 0, dayChangePct: 0, marketCap: 1.35e12, sharesOutstanding: 2.46e9, beta: 1.0 },
+    meta: { symbol: c.symbol, name: c.name, exchange: c.exchange, sector: c.category, industry: "Index Fund", currency: "USD", asOf: today, priceAsOf: today, isSample: true, notes: [SAMPLE_NOTE] },
+    market: { price: c.price, dayChange: 0, dayChangePct: 0, marketCap: c.netAssets, sharesOutstanding: c.netAssets / c.price, beta: 1.0 },
     fundamentals: { freeCashFlow: 0, fcfHistory: [], ebitda: 0, epsTTM: 0, revenue: 0, revenuePerShare: 0, bookValuePerShare: 0, netDebt: 0, totalDebt: 0, cash: 0, interestExpense: 0, taxRate: 0.21, dividendPerShare: 0 },
     ownMultiples: { pe: null, evEbitda: null, ps: null, pb: null },
-    peers: { peers: [], medianPE: null, medianEvEbitda: null, medianPS: null },
+    peers: { peers: [], medianPE: null, medianEvEbitda: null, medianPS: null, medianPB: null },
     analyst: { available: false, targetLow: null, targetMean: null, targetHigh: null, numAnalysts: null, estGrowth: null },
     rates: { riskFree: 0.043, equityRiskPremium: 0.05, riskFreeIsFallback: true },
     defaults: { stage1Growth: 0.08, terminalGrowth: 0.025, wacc: 0.09, horizon: 5 },
-    costEquity: 0.093, waccFallback: false, dividendPayer: true, fmpDcf: null,
-    priceSeries: series, histMultiples: [], congress: [],
+    costEquity: 0.093, waccFallback: false, dividendPayer: c.dividendYield > 0, fmpDcf: null,
+    priceSeries: genSeries(c.symbol, c.price), histMultiples: [], congress: [],
     buzz: { found: false, rank: null, mentions: null, mentions24hAgo: null, upvotes: null, change24hPct: null },
     fearGreed: { available: true, score: 55, rating: "Greed", asOf: today },
-    news: news([["S&P 500 sets fresh record as megacaps lead", "Reuters", today], ["Index-fund inflows continue to climb", "Bloomberg", monthsAgo(1)]]),
-    sources: {}, kind: "fund",
+    news: news(c.headlines), sources: {}, kind: "fund",
     fund: {
-      expenseRatio: 0.0003, netAssets: 1.35e12, inception: "2010-09-07", dividendYield: 0.013, turnover: 0.02,
-      issuer: "Vanguard", assetType: "ETF",
-      sectors: [
-        { sector: "Information Technology", weight: 0.32 }, { sector: "Financials", weight: 0.13 },
-        { sector: "Health Care", weight: 0.11 }, { sector: "Consumer Discretionary", weight: 0.10 },
-        { sector: "Communication Services", weight: 0.09 }, { sector: "Industrials", weight: 0.08 },
-        { sector: "Consumer Staples", weight: 0.06 }, { sector: "Energy", weight: 0.04 },
-      ],
-      holdings,
+      expenseRatio: c.expenseRatio, netAssets: c.netAssets, inception: c.inception, dividendYield: c.dividendYield,
+      turnover: 0.03, issuer: null, assetType: "ETF",
+      sectors: c.sectors.map(([sector, weight]) => ({ sector, weight })), holdings,
     },
   };
 }
-SAMPLES.VOO = buildFund();
+SAMPLES.VOO = buildFund({
+  symbol: "VOO", name: "Vanguard S&P 500 ETF", exchange: "NYSE Arca", price: 548.2, netAssets: 1.35e12,
+  expenseRatio: 0.0003, dividendYield: 0.013, inception: "2010-09-07", category: "Large Blend",
+  sectors: [["Information Technology", 0.32], ["Financials", 0.13], ["Health Care", 0.11], ["Consumer Discretionary", 0.10], ["Communication Services", 0.09], ["Industrials", 0.08], ["Consumer Staples", 0.06], ["Energy", 0.04]],
+  holdings: [["AAPL", "Apple Inc", 0.071], ["MSFT", "Microsoft Corp", 0.066], ["NVDA", "NVIDIA Corp", 0.061], ["AMZN", "Amazon.com Inc", 0.038], ["META", "Meta Platforms Inc", 0.025], ["GOOGL", "Alphabet Cl A", 0.021], ["GOOG", "Alphabet Cl C", 0.018], ["AVGO", "Broadcom Inc", 0.017], ["BRK.B", "Berkshire Hathaway", 0.016], ["LLY", "Eli Lilly", 0.014], ["TSLA", "Tesla Inc", 0.013], ["JPM", "JPMorgan Chase", 0.013], ["XOM", "Exxon Mobil", 0.011], ["UNH", "UnitedHealth", 0.010], ["V", "Visa Inc", 0.009], ["MA", "Mastercard", 0.008], ["COST", "Costco", 0.008], ["HD", "Home Depot", 0.007]],
+  headlines: [["S&P 500 sets fresh record as megacaps lead", "Reuters", today], ["Index-fund inflows keep climbing", "Bloomberg", monthsAgo(1)]],
+});
+SAMPLES.QQQ = buildFund({
+  symbol: "QQQ", name: "Invesco QQQ Trust", exchange: "NASDAQ", price: 512.4, netAssets: 3.2e11,
+  expenseRatio: 0.002, dividendYield: 0.006, inception: "1999-03-10", category: "Large Growth",
+  sectors: [["Information Technology", 0.50], ["Communication Services", 0.16], ["Consumer Discretionary", 0.13], ["Health Care", 0.06], ["Consumer Staples", 0.05], ["Industrials", 0.05]],
+  holdings: [["AAPL", "Apple Inc", 0.089], ["MSFT", "Microsoft Corp", 0.082], ["NVDA", "NVIDIA Corp", 0.078], ["AMZN", "Amazon.com Inc", 0.051], ["AVGO", "Broadcom Inc", 0.045], ["META", "Meta Platforms Inc", 0.038], ["TSLA", "Tesla Inc", 0.029], ["GOOGL", "Alphabet Cl A", 0.025], ["GOOG", "Alphabet Cl C", 0.024], ["COST", "Costco", 0.027], ["NFLX", "Netflix Inc", 0.021], ["TMUS", "T-Mobile US", 0.018], ["CSCO", "Cisco Systems", 0.014], ["PEP", "PepsiCo Inc", 0.013], ["AMD", "Advanced Micro Devices", 0.012], ["LIN", "Linde plc", 0.011], ["INTU", "Intuit Inc", 0.010], ["QCOM", "Qualcomm Inc", 0.009]],
+  headlines: [["Nasdaq-100 rebalances as AI names swell", "CNBC", today], ["Big tech earnings drive QQQ flows", "Bloomberg", monthsAgo(1)]],
+});

@@ -1,4 +1,4 @@
-// Alpha Vantage — free (25/day, 5/min). A fundamentals/quote BACKUP and the
+// Alpha Vantage, free (25/day, 5/min). A fundamentals/quote BACKUP and the
 // source for the fund/ETF view (ETF_PROFILE = holdings + expense ratio).
 // Returns null on rate-limit ("Note"/"Information") or empty payloads.
 import { getJson, num } from "./http";

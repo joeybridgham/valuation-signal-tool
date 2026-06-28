@@ -1,4 +1,4 @@
-// Tiny Upstash Redis (REST) client — server-only. Used to persist daily mention
+// Tiny Upstash Redis (REST) client, server-only. Used to persist daily mention
 // snapshots and cached Reddit posts. Entirely optional: if no store is
 // configured, hasStore() is false and every caller degrades gracefully.
 // Works with the env vars the Vercel→Upstash Marketplace integration injects

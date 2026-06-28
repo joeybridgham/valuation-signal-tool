@@ -20,7 +20,7 @@ function mock(over: Partial<AnalyzeResult> = {}): AnalyzeResult {
     market: { price: 100, dayChange: 1, dayChangePct: 0.01, marketCap: 1e11, sharesOutstanding: 1e9, beta: 1.1 },
     fundamentals: { freeCashFlow: 5e9, fcfHistory: [5e9, 4.3e9, 3.8e9], ebitda: 8e9, epsTTM: 4.5, revenue: 4e10, revenuePerShare: 40, bookValuePerShare: 20, netDebt: 1e10, totalDebt: 1.5e10, cash: 5e9, interestExpense: 6e8, taxRate: 0.21, dividendPerShare: 2.0 },
     ownMultiples: { pe: 22, evEbitda: 14, ps: 2.5, pb: 5 },
-    peers: { peers: [{ symbol: "A", pe: 20, evEbitda: 13, ps: 2.2, pb: 4 }, { symbol: "B", pe: 26, evEbitda: 16, ps: 3.0, pb: 6 }], medianPE: 23, medianEvEbitda: 14.5, medianPS: 2.6 },
+    peers: { peers: [{ symbol: "A", pe: 20, evEbitda: 13, ps: 2.2, pb: 4 }, { symbol: "B", pe: 26, evEbitda: 16, ps: 3.0, pb: 6 }], medianPE: 23, medianEvEbitda: 14.5, medianPS: 2.6, medianPB: 5 },
     analyst: { available: true, targetLow: 90, targetMean: 120, targetHigh: 150, numAnalysts: 28, estGrowth: 0.12 },
     rates: { riskFree: 0.043, equityRiskPremium: 0.05, riskFreeIsFallback: false },
     defaults: { stage1Growth: 0.12, terminalGrowth: 0.025, wacc: 0.09, horizon: 5 },
@@ -82,7 +82,7 @@ console.log("computeValuation (negative-FCF, non-payer — SLS-like)");
   const d = mock({
     fundamentals: { freeCashFlow: -8e7, fcfHistory: [-8e7, -6e7], ebitda: -9e7, epsTTM: -1.2, revenue: 2e6, revenuePerShare: 0.05, bookValuePerShare: 1.5, netDebt: -5e7, totalDebt: 0, cash: 5e7, interestExpense: 0, taxRate: 0, dividendPerShare: 0 },
     dividendPayer: false, analyst: { available: true, targetLow: 2, targetMean: 9, targetHigh: 20, numAnalysts: 4, estGrowth: null },
-    peers: { peers: [], medianPE: null, medianEvEbitda: null, medianPS: null },
+    peers: { peers: [], medianPE: null, medianEvEbitda: null, medianPS: null, medianPB: null },
     buzz: { found: false, rank: null, mentions: null, mentions24hAgo: null, upvotes: null, change24hPct: null },
   });
   const val = computeValuation(d, d.defaults);

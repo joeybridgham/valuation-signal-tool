@@ -22,7 +22,7 @@ export function KpiRow({ data, valuation }: { data: AnalyzeResult; valuation: Va
         </div>
         <div className="kpi">
           <div className="kpi-label">Margin of safety</div>
-          <div className={`kpi-value ${mos != null ? (mos >= 0 ? "delta-pos" : "delta-neg") : ""}`}>{mos != null ? fmtPct(mos, 1, true) : "—"}</div>
+          <div className={`kpi-value ${mos != null ? (mos >= 0 ? "delta-pos" : "delta-neg") : ""}`}>{mos != null ? fmtPct(mos, 1, true) : "n/a"}</div>
           <div className="small muted">vs current price</div>
         </div>
         <div className="kpi">
@@ -32,7 +32,7 @@ export function KpiRow({ data, valuation }: { data: AnalyzeResult; valuation: Va
         </div>
       </div>
       <p className="muted small" style={{ marginTop: 10 }}>
-        {data.meta.sector || "—"}{data.meta.industry ? ` · ${data.meta.industry}` : ""} · Mkt cap {fmtUSD(data.market.marketCap, { compact: true })} · Beta {fmtNum(data.market.beta, 2)} · {data.meta.exchange}
+        {data.meta.sector || "n/a"}{data.meta.industry ? ` · ${data.meta.industry}` : ""} · Mkt cap {fmtUSD(data.market.marketCap, { compact: true })} · Beta {fmtNum(data.market.beta, 2)} · {data.meta.exchange}
       </p>
     </>
   );
@@ -125,7 +125,7 @@ export function RetailBuzz({ data }: { data: AnalyzeResult }) {
 
           <div className="kpi-row" style={{ gridTemplateColumns: "1fr 1fr 1fr", marginTop: 10 }}>
             <div className="kpi"><div className="kpi-label">Mentions</div><div className="kpi-value sm">{fmtNum(b.mentions ?? (hist.at(-1)?.mentions ?? 0), 0)}</div></div>
-            <div className="kpi"><div className="kpi-label">24h change</div><div className={`kpi-value sm ${(b.change24hPct ?? 0) >= 0 ? "delta-pos" : "delta-neg"}`}>{b.change24hPct != null ? fmtPct(b.change24hPct, 0, true) : "—"}</div></div>
+            <div className="kpi"><div className="kpi-label">24h change</div><div className={`kpi-value sm ${(b.change24hPct ?? 0) >= 0 ? "delta-pos" : "delta-neg"}`}>{b.change24hPct != null ? fmtPct(b.change24hPct, 0, true) : "n/a"}</div></div>
             <div className="kpi"><div className="kpi-label">Upvotes</div><div className="kpi-value sm">{fmtNum(b.upvotes ?? 0, 0)}</div></div>
           </div>
         </>
@@ -139,7 +139,7 @@ export function RetailBuzz({ data }: { data: AnalyzeResult }) {
             <div className="news-head">{p.title}</div>
             <div className="news-meta">{p.subreddit} · ▲ {fmtNum(p.score, 0)} · {fmtDate(p.created)}</div>
           </a>
-        )) : <p className="muted small">No cached threads yet — browse the live discussion below.</p>}
+        )) : <p className="muted small">No cached threads yet, browse the live discussion below.</p>}
         <a className="btn btn-sm btn-ghost" href={searchUrl} target="_blank" rel="noreferrer" style={{ marginTop: 10 }}>View discussions on Reddit ↗</a>
       </div>
 
@@ -156,7 +156,7 @@ export function NewsFeed({ data }: { data: AnalyzeResult }) {
       {data.news.slice(0, 6).map((n, i) => (
         <a className="news-item" key={i} href={n.url} target="_blank" rel="noreferrer">
           <div className="news-head">{n.title}</div>
-          <div className="news-meta">{n.site || "—"} · {fmtDate(n.publishedDate)}</div>
+          <div className="news-meta">{n.site || "n/a"} · {fmtDate(n.publishedDate)}</div>
         </a>
       ))}
     </div>
@@ -169,6 +169,16 @@ export function SampleBanner({ data }: { data: AnalyzeResult }) {
     <div className="sample-banner no-print">
       <span className="tag-sample">Sample data</span>
       <span className="small">Illustrative numbers shown until the first build with API keys. Set <code>FMP_API_KEY</code> (and <code>GEMINI_API_KEY</code>) and redeploy to populate live data.</span>
+    </div>
+  );
+}
+
+export function AiDataBanner({ data }: { data: AnalyzeResult }) {
+  if (data.dataSource !== "AI estimate") return null;
+  return (
+    <div className="sample-banner no-print" style={{ background: "var(--neg-wash)", borderColor: "var(--neg)" }}>
+      <span className="tag-sample" style={{ background: "var(--neg-wash)", color: "var(--neg)", borderColor: "var(--neg)" }}>AI estimate</span>
+      <span className="small">Every live data source was unavailable, so these figures are an <strong>AI estimate from training knowledge</strong> (approximate, possibly outdated, not live). Prices come from Stooq when available.</span>
     </div>
   );
 }

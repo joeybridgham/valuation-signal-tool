@@ -2,7 +2,7 @@
 import type { AnalyzeResult } from "@/lib/types";
 import { fmtUSD, fmtPct, fmtDate } from "@/lib/format";
 import { PriceChart } from "./Charts";
-import { RetailBuzz, NewsFeed, SampleBanner } from "./Panels";
+import { RetailBuzz, NewsFeed, SampleBanner, AiDataBanner } from "./Panels";
 import Watchlist from "./Watchlist";
 import PdfButton from "./PdfButton";
 
@@ -26,16 +26,17 @@ export default function FundView({ data }: { data: AnalyzeResult }) {
       </div>
 
       <SampleBanner data={data} />
+      <AiDataBanner data={data} />
 
       <div className="kpi-row">
         <div className="kpi"><div className="kpi-label">Price</div><div className="kpi-value">{fmtUSD(data.market.price)}</div><div className={`small mono ${data.market.dayChangePct >= 0 ? "delta-pos" : "delta-neg"}`}>{fmtPct(data.market.dayChangePct, 2, true)} today</div></div>
-        <div className="kpi"><div className="kpi-label">Expense ratio</div><div className="kpi-value">{f?.expenseRatio != null ? fmtPct(f.expenseRatio, 2) : "—"}</div></div>
-        <div className="kpi"><div className="kpi-label">Net assets</div><div className="kpi-value">{f?.netAssets != null ? fmtUSD(f.netAssets, { compact: true }) : "—"}</div></div>
-        <div className="kpi"><div className="kpi-label">Dividend yield</div><div className="kpi-value">{f?.dividendYield != null ? fmtPct(f.dividendYield, 2) : "—"}</div></div>
+        <div className="kpi"><div className="kpi-label">Expense ratio</div><div className="kpi-value">{f?.expenseRatio != null ? fmtPct(f.expenseRatio, 2) : "n/a"}</div></div>
+        <div className="kpi"><div className="kpi-label">Net assets</div><div className="kpi-value">{f?.netAssets != null ? fmtUSD(f.netAssets, { compact: true }) : "n/a"}</div></div>
+        <div className="kpi"><div className="kpi-label">Dividend yield</div><div className="kpi-value">{f?.dividendYield != null ? fmtPct(f.dividendYield, 2) : "n/a"}</div></div>
       </div>
       <p className="muted small">
         {f?.inception ? `Inception ${fmtDate(f.inception)} · ` : ""}{f?.turnover != null ? `Turnover ${fmtPct(f.turnover, 0)} · ` : ""}
-        {data.meta.sector ? `Category: ${data.meta.sector} · ` : ""}Fund data: Alpha Vantage. A fund — so no valuation football field or congressional section (those don't apply).
+        {data.meta.sector ? `Category: ${data.meta.sector} · ` : ""}Fund data: Alpha Vantage. A fund, so no valuation football field or congressional section (those don't apply).
       </p>
 
       <section className="card no-print">

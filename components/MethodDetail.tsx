@@ -24,7 +24,7 @@ export default function MethodDetail({
       <Scrim onClose={onClose}>
         <Head title="Blended fair value" sub="Equal-weight of intrinsic midpoints" onClose={onClose} />
         <p className="muted small" style={{ marginBottom: 12 }}>
-          The blend equally weights the midpoints of the available intrinsic methods (DCF, comps, DDM). The analyst range is excluded — it is a market anchor, not an intrinsic estimate.
+          The blend equally weights the midpoints of the available intrinsic methods (DCF, comps, DDM). The analyst range is excluded, it is a market anchor, not an intrinsic estimate.
         </p>
         <div className="steps">
           {used.map((m) => (<div className="step" key={m.key}><span>{m.label} midpoint</span><span className="step-val">{fmtUSD(m.mid)}</span></div>))}
@@ -44,7 +44,7 @@ export default function MethodDetail({
       <Head title={m.label} sub={m.sublabel} onClose={onClose} />
       {m.stale && (
         <div className="stale-banner">
-          ⚠ This model relies on an annual filing about {m.staleAgeMonths} months old (period ending {fmtDate(m.asOfDate)}). A newer 10-K may not yet be reflected — treat the output with extra caution.
+          ⚠ This model relies on an annual filing about {m.staleAgeMonths} months old (period ending {fmtDate(m.asOfDate)}). A newer 10-K may not yet be reflected, treat the output with extra caution.
         </div>
       )}
       <div className="formula">{m.formula}</div>
@@ -53,7 +53,7 @@ export default function MethodDetail({
         <div className="steps">
           {m.steps.map((s, i) => (
             <div className={`step ${s.label.toLowerCase().includes("intrinsic value") || s.label.toLowerCase().includes("value =") ? "total" : ""}`} key={i}>
-              <span>{s.label}{s.hint && <em className="hint"> — {s.hint}</em>}</span>
+              <span>{s.label}{s.hint && <em className="hint">, {s.hint}</em>}</span>
               <span className="step-val">{s.value}</span>
             </div>
           ))}

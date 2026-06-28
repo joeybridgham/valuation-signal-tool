@@ -10,7 +10,7 @@ export default function Home() {
         <div className="eyebrow">Educational valuation &amp; signal tool</div>
         <h1 className="h1" style={{ marginTop: 10 }}>Value any stock, transparently.</h1>
         <p className="lead" style={{ maxWidth: "62ch", marginTop: 12 }}>
-          A multi-method valuation football field, a reverse-DCF, and a signal scorecard — every input visible and
+          A multi-method valuation football field, a reverse-DCF, and a signal scorecard, every input visible and
           adjustable. Click any method to see the exact calculation and the filings behind it. Not investment advice.
         </p>
         <div style={{ marginTop: 20 }}><TickerSearch autoFocus /></div>
@@ -38,9 +38,9 @@ export default function Home() {
       <section>
         <div className="section-head"><div><div className="eyebrow">How it reads</div><div className="section-title">What you'll see</div></div></div>
         <div className="how">
-          <div className="card"><div className="n">01</div><h3 className="h3" style={{ marginTop: 4 }}>Football field</h3><p className="muted small">DCF, comps, DDM and the analyst range as value bars, plus a blended fair value and margin of safety. Click any row for the full math and its source filings — with a staleness flag when a 10-K is over a year old.</p></div>
-          <div className="card"><div className="n">02</div><h3 className="h3" style={{ marginTop: 4 }}>Reverse DCF &amp; sliders</h3><p className="muted small">See the growth the current price implies, then flex stage-1 growth, WACC, terminal rate and horizon — everything recomputes instantly, client-side.</p></div>
-          <div className="card"><div className="n">03</div><h3 className="h3" style={{ marginTop: 4 }}>Conditions scorecard</h3><p className="muted small">Valuation, technicals, analyst upside, market Fear &amp; Greed and retail buzz, combined into one read with adjustable weights. Every input is shown — it's a transparent model, not a black box.</p></div>
+          <div className="card"><div className="n">01</div><h3 className="h3" style={{ marginTop: 4 }}>Football field</h3><p className="muted small">DCF, comps, DDM and the analyst range as value bars, plus a blended fair value and margin of safety. Click any row for the full math and its source filings, with a staleness flag when a 10-K is over a year old.</p></div>
+          <div className="card"><div className="n">02</div><h3 className="h3" style={{ marginTop: 4 }}>Reverse DCF &amp; sliders</h3><p className="muted small">See the growth the current price implies, then flex stage-1 growth, WACC, terminal rate and horizon, everything recomputes instantly, client-side.</p></div>
+          <div className="card"><div className="n">03</div><h3 className="h3" style={{ marginTop: 4 }}>Conditions scorecard</h3><p className="muted small">Valuation, technicals, analyst upside, market Fear &amp; Greed and retail buzz, combined into one read with adjustable weights. Every input is shown, it's a transparent model, not a black box.</p></div>
         </div>
       </section>
     </div>

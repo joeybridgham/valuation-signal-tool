@@ -38,7 +38,7 @@ export default function NarrativePanel({
 
       <p className="muted small" style={{ marginTop: 12 }}>
         AI-generated synthesis of the public data above. Not investment advice.
-        {narrative?.model === "sample" && " — sample text shown until a build with ANTHROPIC_API_KEY generates the real narrative."}
+        {narrative?.model === "sample" && ", sample text shown until a build with ANTHROPIC_API_KEY generates the real narrative."}
       </p>
     </div>
   );

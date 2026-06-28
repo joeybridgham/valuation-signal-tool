@@ -11,13 +11,13 @@ import { generateNarrative } from "@/lib/anthropic";
 import { getSampleNarrative } from "@/lib/sampleData";
 import type { Narrative } from "@/lib/types";
 
-// On-demand + cached daily (NOT pre-built) — avoids spending the FMP daily
+// On-demand + cached daily (NOT pre-built), avoids spending the FMP daily
 // budget on every deploy. First visit generates and caches for 24h.
 export const revalidate = 86400;
 
 export function generateMetadata({ params }: { params: { symbol: string } }): Metadata {
   const f = featuredBySymbol(params.symbol);
-  return { title: f ? `${f.symbol} — ${f.name} · Valuation & Signal` : "Valuation & Signal" };
+  return { title: f ? `${f.symbol}, ${f.name} · Valuation & Signal` : "Valuation & Signal" };
 }
 
 export default async function FeaturedPage({ params }: { params: { symbol: string } }) {

@@ -1,4 +1,4 @@
-// Reddit client — server-only, optional. Application-only OAuth (client
+// Reddit client, server-only, optional. Application-only OAuth (client
 // credentials) for read-only public search. Free for non-commercial use.
 // If REDDIT_CLIENT_ID/SECRET are absent, hasRedditCreds() is false and callers
 // fall back to a "view on Reddit" deep link.

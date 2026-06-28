@@ -1,5 +1,5 @@
 // ============================================================================
-// "Conditions" scorecard — a transparent composite. Every factor scored 0..100
+// "Conditions" scorecard, a transparent composite. Every factor scored 0..100
 // (higher = more favorable for a value-oriented entry), every input shown, and
 // weights are user-adjustable. Educational, NOT a recommendation.
 // ============================================================================
@@ -43,7 +43,7 @@ export function computeScorecard(
 ): Scorecard {
   const factors: FactorScore[] = [];
 
-  // 1) Valuation — margin of safety vs blended fair value
+  // 1) Valuation, margin of safety vs blended fair value
   {
     const mos = val.marginOfSafety;
     const score = mos != null ? clamp(50 + mos * 90, 2, 98) : null;
@@ -55,7 +55,7 @@ export function computeScorecard(
     });
   }
 
-  // 2) Technicals — RSI(14), price vs 50/200-day SMA, position in 52-wk range
+  // 2) Technicals, RSI(14), price vs 50/200-day SMA, position in 52-wk range
   {
     const subs: number[] = [];
     const bits: string[] = [];
@@ -81,7 +81,7 @@ export function computeScorecard(
     });
   }
 
-  // 3) Analyst upside — to mean target
+  // 3) Analyst upside, to mean target
   {
     const mean = d.analyst.targetMean;
     const up = mean != null && d.market.price > 0 ? (mean - d.market.price) / d.market.price : null;
@@ -94,7 +94,7 @@ export function computeScorecard(
     });
   }
 
-  // 4) Market timing — CNN Fear & Greed, read CONTRARIAN
+  // 4) Market timing, CNN Fear & Greed, read CONTRARIAN
   {
     const fg = d.fearGreed.score;
     const score = fg != null ? clamp(100 - fg, 2, 98) : null;
@@ -106,7 +106,7 @@ export function computeScorecard(
     });
   }
 
-  // 5) Retail buzz — ApeWisdom 24h mention change (attention/momentum)
+  // 5) Retail buzz, ApeWisdom 24h mention change (attention/momentum)
   {
     const ch = d.buzz.change24hPct;
     let score: number | null;
@@ -120,7 +120,7 @@ export function computeScorecard(
     factors.push({
       key: "buzz", label: "Retail buzz", score, weight: 0, rawWeight: weights.buzz,
       valueText,
-      detail: "Direction of the 24h change in Reddit mention volume (attention/momentum). A spike means crowding — read with care.",
+      detail: "Direction of the 24h change in Reddit mention volume (attention/momentum). A spike means crowding, read with care.",
       tone: tone(score),
     });
   }

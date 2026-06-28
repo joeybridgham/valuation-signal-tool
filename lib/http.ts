@@ -1,5 +1,5 @@
 // Small fetch helper: server-side only, Next fetch-caching + a hard timeout, and
-// it never throws — callers get null on any failure so one bad source can't break
+// it never throws, callers get null on any failure so one bad source can't break
 // the whole analysis.
 
 export interface FetchOpts {

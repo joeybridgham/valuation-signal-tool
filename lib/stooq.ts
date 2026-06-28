@@ -1,4 +1,4 @@
-// Stooq daily prices — free, keyless, effectively unlimited. Primary source for
+// Stooq daily prices, free, keyless, effectively unlimited. Primary source for
 // the price series so charts/technicals don't consume the FMP budget.
 import { num } from "./http";
 import type { PricePoint } from "./types";

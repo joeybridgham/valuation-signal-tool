@@ -13,7 +13,7 @@ export default function TickerSearch({ autoFocus, placeholder }: { autoFocus?: b
   return (
     <form className="search-wrap" onSubmit={go}>
       <input className="input" autoFocus={autoFocus} value={v} onChange={(e) => setV(e.target.value)}
-        placeholder={placeholder || "Enter a ticker — e.g. AAPL"} aria-label="Ticker symbol" maxLength={9} />
+        placeholder={placeholder || "Enter a ticker, e.g. AAPL"} aria-label="Ticker symbol" maxLength={9} />
       <button className="btn btn-primary" type="submit">Analyze</button>
     </form>
   );

@@ -31,7 +31,7 @@ export default function Watchlist({ current }: { current?: string }) {
           </span>
         ))}
         {current && !saved && <button className="chip add" onClick={() => add(current)}>+ Save {current.toUpperCase()}</button>}
-        {list.length === 0 && !current && <span className="muted small">No saved tickers yet — analyze one, then save it.</span>}
+        {list.length === 0 && !current && <span className="muted small">No saved tickers yet, analyze one, then save it.</span>}
       </div>
     </div>
   );

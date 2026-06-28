@@ -20,7 +20,7 @@ export default function ReverseDcf({ valuation, a }: { valuation: Valuation; a: 
           <p className="lead" style={{ marginTop: 2 }}>annual FCF growth for {a.horizon} years.</p>
           <p className="muted small" style={{ marginTop: 8 }}>
             Solved so the DCF intrinsic value equals the current price, holding WACC at {fmtPct(a.wacc)} and terminal growth at {fmtPct(a.terminalGrowth)}.
-            Your stage-1 assumption is {fmtPct(a.stage1Growth)} — {a.stage1Growth >= g ? "above" : "below"} what the price implies.
+            Your stage-1 assumption is {fmtPct(a.stage1Growth)}, {a.stage1Growth >= g ? "above" : "below"} what the price implies.
           </p>
         </>
       )}

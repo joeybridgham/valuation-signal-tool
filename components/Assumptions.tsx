@@ -26,7 +26,7 @@ export default function AssumptionControls({
       <Slider label="Forecast horizon" value={a.horizon} min={3} max={10} step={1} display={`${a.horizon} yrs`} onChange={(v) => set({ horizon: Math.round(v) })} />
       <p className="muted small" style={{ marginTop: 8 }}>
         Cost of equity (CAPM): <span className="mono">{fmtPct(costEquity)}</span>{waccFallback && " · WACC fell back to a flat 9% (unstable capital structure)."}
-        {" "}Changes recompute the DCF, blended value, margin of safety and reverse-DCF — all in your browser, no new requests.
+        {" "}Changes recompute the DCF, blended value, margin of safety and reverse-DCF, all in your browser, no new requests.
       </p>
     </div>
   );

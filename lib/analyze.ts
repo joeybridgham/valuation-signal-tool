@@ -1,5 +1,5 @@
 // ============================================================================
-// getAnalysis(symbol) — orchestrator used by /api/analyze AND the static
+// getAnalysis(symbol), orchestrator used by /api/analyze AND the static
 // featured pages. Fetches FMP + ApeWisdom + CNN in parallel, computes WACC /
 // cost of equity / default assumptions, attaches any persisted mention history
 // + cached Reddit posts, and returns the full payload. No FMP key => featured
@@ -8,6 +8,7 @@
 import type { AnalyzeResult, MarketData, Fundamentals, Rates, Assumptions } from "./types";
 import { getFmpBundle, getLiteBundle, hasFmpKey } from "./fmp";
 import { hasAvKey, avEtfProfile } from "./alphavantage";
+import { getAiBundle } from "./aiData";
 import { getBuzz } from "./apewisdom";
 import { getFearGreed } from "./feargreed";
 import { clamp } from "./valuation";
@@ -34,7 +35,7 @@ export function computeDefaults(m: MarketData, f: Fundamentals, rates: Rates): D
   let waccFallback = false;
   if (!isFinite(wacc) || wacc <= terminalGrowth + 0.01 || wacc > 0.25) {
     wacc = 0.09; waccFallback = true;
-    notes.push("WACC was unstable for this name — fell back to a flat 9% discount rate.");
+    notes.push("WACC was unstable for this name, fell back to a flat 9% discount rate.");
   }
 
   let g1: number | null = null;
@@ -72,7 +73,7 @@ export async function getAnalysis(symbol: string): Promise<AnalyzeResult | null>
   }
 
   const [fmpBundle, buzz, fearGreed] = await Promise.all([getFmpBundle(sym), getBuzz(sym), getFearGreed()]);
-  const bundle = fmpBundle ?? (await getLiteBundle(sym));
+  const bundle = fmpBundle ?? (await getLiteBundle(sym)) ?? (await getAiBundle(sym));
   if (!bundle) {
     const sample = SAMPLES[sym];
     return sample ? recomputeSampleDefaults(sample) : null;
@@ -108,6 +109,7 @@ export async function getAnalysis(symbol: string): Promise<AnalyzeResult | null>
     sources: bundle.sources,
   };
   await attachBuzzExtras(result);
+  result.dataSource = bundle.source;
   result.kind = bundle.kind ?? "stock";
   if (result.kind === "fund") {
     const fund = hasAvKey() ? await avEtfProfile(sym) : null;

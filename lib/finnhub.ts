@@ -1,4 +1,4 @@
-// Finnhub client — server-only, OPTIONAL, free tier (60 req/min, no daily cap
+// Finnhub client, server-only, OPTIONAL, free tier (60 req/min, no daily cap
 // like FMP's 250). We use it to OFFLOAD the peer set + peer multiples, since
 // Finnhub's peers endpoint is free (FMP's is paid). Absent key => callers fall
 // back to FMP. Graceful on every failure.

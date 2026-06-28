@@ -14,7 +14,7 @@ import ReverseDcf from "./ReverseDcf";
 import ScorecardPanel from "./Scorecard";
 import NarrativePanel from "./Narrative";
 import { PriceChart, RsiChart, HistValuation, FearGreedGauge } from "./Charts";
-import { KpiRow, CongressTrades, RetailBuzz, NewsFeed, SampleBanner } from "./Panels";
+import { KpiRow, CongressTrades, RetailBuzz, NewsFeed, SampleBanner, AiDataBanner } from "./Panels";
 import Watchlist from "./Watchlist";
 import PdfButton from "./PdfButton";
 import FundView from "./FundView";
@@ -24,20 +24,20 @@ function techInterpretation(t: TechSnapshot): string[] {
   if (t.aboveSma50 != null && t.aboveSma200 != null) {
     const a50 = t.aboveSma50, a200 = t.aboveSma200;
     out.push(
-      a50 && a200 ? `Price is above both its 50-day (${fmtUSD(t.sma50)}) and 200-day (${fmtUSD(t.sma200)}) moving averages — a confirmed uptrend.`
-        : !a50 && !a200 ? `Price is below both its 50-day (${fmtUSD(t.sma50)}) and 200-day (${fmtUSD(t.sma200)}) averages — a downtrend.`
-        : a200 ? `Price is above its 200-day (${fmtUSD(t.sma200)}) but below its 50-day (${fmtUSD(t.sma50)}) — a longer-term uptrend that's cooling off near term.`
-        : `Price is below its 200-day average (${fmtUSD(t.sma200)}) — the longer-term trend is weak.`
+      a50 && a200 ? `Price is above both its 50-day (${fmtUSD(t.sma50)}) and 200-day (${fmtUSD(t.sma200)}) moving averages, a confirmed uptrend.`
+        : !a50 && !a200 ? `Price is below both its 50-day (${fmtUSD(t.sma50)}) and 200-day (${fmtUSD(t.sma200)}) averages, a downtrend.`
+        : a200 ? `Price is above its 200-day (${fmtUSD(t.sma200)}) but below its 50-day (${fmtUSD(t.sma50)}), a longer-term uptrend that's cooling off near term.`
+        : `Price is below its 200-day average (${fmtUSD(t.sma200)}), the longer-term trend is weak.`
     );
   }
   if (t.rsi14 != null) {
     const r = t.rsi14.toFixed(0);
-    out.push(t.rsi14 < 30 ? `RSI(14) is ${r} — oversold (<30); recent selling looks stretched.`
-      : t.rsi14 > 70 ? `RSI(14) is ${r} — overbought (>70); momentum is hot and may be due for a pause.`
-      : `RSI(14) is ${r} — neutral momentum (between 30 and 70).`);
+    out.push(t.rsi14 < 30 ? `RSI(14) is ${r}, oversold (<30); recent selling looks stretched.`
+      : t.rsi14 > 70 ? `RSI(14) is ${r}, overbought (>70); momentum is hot and may be due for a pause.`
+      : `RSI(14) is ${r}, neutral momentum (between 30 and 70).`);
   }
   if (t.week52Pos != null && t.week52Low != null && t.week52High != null) {
-    out.push(`Trading at ${(t.week52Pos * 100).toFixed(0)}% of its 52-week range (${fmtUSD(t.week52Low)} – ${fmtUSD(t.week52High)}).`);
+    out.push(`Trading at ${(t.week52Pos * 100).toFixed(0)}% of its 52-week range (${fmtUSD(t.week52Low)} to ${fmtUSD(t.week52High)}).`);
   }
   return out;
 }
@@ -77,7 +77,7 @@ export default function AnalysisView({
   return (
     <div className="stack" style={{ gap: 26 }}>
       <div className="print-only print-head">
-        <h2>{data.meta.symbol} — {data.meta.name}</h2>
+        <h2>{data.meta.symbol}, {data.meta.name}</h2>
         <div>Valuation & Signal report · data as of {fmtDate(data.meta.priceAsOf)} · Educational, not investment advice.</div>
       </div>
 
@@ -93,6 +93,7 @@ export default function AnalysisView({
       </div>
 
       <SampleBanner data={data} />
+      <AiDataBanner data={data} />
       <KpiRow data={data} valuation={val} />
 
       <section className="grid grid-5-2">
@@ -109,7 +110,7 @@ export default function AnalysisView({
       <ScorecardPanel score={score} weights={weights} onWeights={setWeights} />
 
       <div className="print-only print-signals">
-        <strong>Signals:</strong> Conditions {score.label} ({score.composite?.toFixed(0)}/100) · Fear &amp; Greed {data.fearGreed.score ?? "—"} · Congress: {congressSummary(data)} · Reverse-DCF growth {val.reverseImpliedGrowth != null ? fmtPct(val.reverseImpliedGrowth, 1) : "n/a"}.
+        <strong>Signals:</strong> Conditions {score.label} ({score.composite?.toFixed(0)}/100) · Fear &amp; Greed {data.fearGreed.score ?? "n/a"} · Congress: {congressSummary(data)} · Reverse-DCF growth {val.reverseImpliedGrowth != null ? fmtPct(val.reverseImpliedGrowth, 1) : "n/a"}.
       </div>
 
       <NarrativePanel narrative={narrative} loading={narrLoading} error={narrError} />
@@ -120,7 +121,7 @@ export default function AnalysisView({
           {data.fearGreed.available && data.fearGreed.score != null
             ? <FearGreedGauge score={data.fearGreed.score} rating={data.fearGreed.rating} />
             : <div className="empty"><div className="t">Unavailable</div></div>}
-          <p className="muted small">CNN Business gauge — a market-wide read, not stock-specific. Used contrarian in the scorecard.</p>
+          <p className="muted small">CNN Business gauge, a market-wide read, not stock-specific. Used contrarian in the scorecard.</p>
         </div>
         <RetailBuzz data={data} />
         <CongressTrades data={data} />

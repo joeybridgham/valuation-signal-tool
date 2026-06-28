@@ -61,7 +61,7 @@ export function PriceChart({ series }: { series: PricePoint[] }) {
         <span><span className="sw" style={{ background: "var(--ink)" }} />Price</span>
         <span><span className="sw" style={{ background: "var(--accent-2)" }} />50-day SMA</span>
         <span><span className="sw" style={{ background: "var(--gold)" }} />200-day SMA</span>
-        <span className="muted">{fmtDateShort(view[0].date)} – {fmtDateShort(view[view.length - 1].date)}</span>
+        <span className="muted">{fmtDateShort(view[0].date)} to {fmtDateShort(view[view.length - 1].date)}</span>
       </div>
     </div>
   );
@@ -95,7 +95,7 @@ export function RsiChart({ series }: { series: PricePoint[] }) {
         <path d={linePath(pts)} fill="none" style={{ stroke: "var(--accent)" }} strokeWidth={1.6} />
         <circle cx={x(r.length - 1)} cy={y(cur)} r={3} style={{ fill: "var(--accent)" }} />
       </svg>
-      <p className="muted small" style={{ marginTop: 2 }}>RSI(14) now <span className="mono">{cur.toFixed(0)}</span> — oversold &lt;30, overbought &gt;70.</p>
+      <p className="muted small" style={{ marginTop: 2 }}>RSI(14) now <span className="mono">{cur.toFixed(0)}</span>, oversold &lt;30, overbought &gt;70.</p>
     </div>
   );
 }
@@ -126,7 +126,7 @@ export function HistValuation({ hist }: { hist: HistMultiplePoint[] }) {
           </g>
         ))}
       </svg>
-      <p className="muted small">Trailing P/E by year · current <span className="mono">{fmtX(cur)}</span> vs history avg <span className="mono">{fmtX(avg)}</span> — {cur > avg ? "richer" : "cheaper"} than its own past.</p>
+      <p className="muted small">Trailing P/E by year · current <span className="mono">{fmtX(cur)}</span> vs history avg <span className="mono">{fmtX(avg)}</span>, {cur > avg ? "richer" : "cheaper"} than its own past.</p>
     </div>
   );
 }

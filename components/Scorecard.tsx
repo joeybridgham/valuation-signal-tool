@@ -27,10 +27,10 @@ export default function ScorecardPanel({
       </div>
 
       <div className="composite">
-        <div className={`dial mono ${labelClass}`}>{score.composite != null ? score.composite.toFixed(0) : "—"}</div>
+        <div className={`dial mono ${labelClass}`}>{score.composite != null ? score.composite.toFixed(0) : "n/a"}</div>
         <div>
           <div className={`h3 ${labelClass}`}>{score.label}</div>
-          <div className="muted small">Weighted blend of the five factors below. Higher = more favorable for a value-oriented entry. Educational only — not a recommendation.</div>
+          <div className="muted small">Weighted blend of the five factors below. Higher = more favorable for a value-oriented entry. Educational only, not a recommendation.</div>
         </div>
       </div>
 
@@ -45,7 +45,7 @@ export default function ScorecardPanel({
             <div className="factor-bar" title={f.detail}>
               {f.score != null && <div className={`factor-fill ${f.tone}`} style={{ width: `${f.score}%` }} />}
             </div>
-            <div className="factor-score mono">{f.score != null ? f.score.toFixed(0) : "—"}</div>
+            <div className="factor-score mono">{f.score != null ? f.score.toFixed(0) : "n/a"}</div>
           </div>
         ))}
       </div>
@@ -53,7 +53,7 @@ export default function ScorecardPanel({
       <details className="weights no-print">
         <summary>Adjust factor weights</summary>
         <p className="muted small" style={{ margin: "6px 0 10px" }}>
-          Weights are normalized to 100% across factors that have data. Surfacing this is the point: the scoring is a transparent, subjective model — not a black-box call.
+          Weights are normalized to 100% across factors that have data. Surfacing this is the point: the scoring is a transparent, subjective model, not a black-box call.
         </p>
         {LABELS.map(({ key, label }) => (
           <div className="slider-row" key={key}>

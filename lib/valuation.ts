@@ -1,5 +1,5 @@
 // ============================================================================
-// Valuation engine — pure, deterministic, shared by server (defaults / build)
+// Valuation engine, pure, deterministic, shared by server (defaults / build)
 // and client (live slider recompute). No I/O here.
 //
 // Every method returns: value range, a step-by-step calculation breakdown
@@ -16,7 +16,7 @@ export interface Step {
   hint?: string;
 }
 
-export type MethodKey = "dcf" | "comps" | "ddm" | "analyst";
+export type MethodKey = "dcf" | "comps" | "ddm" | "analyst" | "asset";
 
 export interface MethodResult {
   key: MethodKey;
@@ -164,7 +164,7 @@ function buildDcf(d: AnalyzeResult, a: Assumptions): MethodResult {
     const fcf = f.freeCashFlow * Math.pow(1 + a.stage1Growth, t);
     const pv = fcf / Math.pow(1 + a.wacc, t);
     pvStage += pv;
-    yearRows.push({ label: `Year ${t} — FCF ${compact(fcf)} → PV`, value: fmtUSD(pv, { compact: true }) });
+    yearRows.push({ label: `Year ${t}, FCF ${compact(fcf)} → PV`, value: fmtUSD(pv, { compact: true }) });
   }
   const fcfH = f.freeCashFlow * Math.pow(1 + a.stage1Growth, a.horizon);
   const tv = (fcfH * (1 + a.terminalGrowth)) / (a.wacc - a.terminalGrowth);
@@ -187,7 +187,7 @@ function buildDcf(d: AnalyzeResult, a: Assumptions): MethodResult {
     { label: "Equity value", value: fmtUSD(equity, { compact: true }) },
     { label: "÷ Shares outstanding", value: compact(d.market.sharesOutstanding) },
     { label: "Intrinsic value / share", value: fmtUSD(mid) },
-    { label: "Range (flex g₁ ±3pts, WACC ∓0.75pt)", value: `${fmtUSD(low)} – ${fmtUSD(high)}` },
+    { label: "Range (flex g₁ ±3pts, WACC ∓0.75pt)", value: `${fmtUSD(low)} to ${fmtUSD(high)}` },
   ];
 
   return {
@@ -224,6 +224,9 @@ function buildComps(d: AnalyzeResult, _a: Assumptions): MethodResult {
   let psVal: number | null = null;
   if (p.medianPS && p.medianPS > 0 && f.revenuePerShare > 0) psVal = p.medianPS * f.revenuePerShare;
   implied.push({ label: "Peer median P/S × Rev/share", mult: p.medianPS, value: psVal });
+  let pbVal: number | null = null;
+  if (p.medianPB && p.medianPB > 0 && f.bookValuePerShare > 0) pbVal = p.medianPB * f.bookValuePerShare;
+  implied.push({ label: "Peer median P/B × Book value/share", mult: p.medianPB, value: pbVal });
 
   const vals = implied.map((i) => i.value).filter((v): v is number => v != null && isFinite(v) && v > 0);
   const available = vals.length > 0;
@@ -232,16 +235,17 @@ function buildComps(d: AnalyzeResult, _a: Assumptions): MethodResult {
   const mid = available ? median(vals) : null;
 
   const steps: Step[] = [
-    { label: "Peer set", value: p.peers.map((x) => x.symbol).slice(0, 8).join(", ") || "—", hint: `${p.peers.length} peers` },
+    { label: "Peer set", value: p.peers.map((x) => x.symbol).slice(0, 8).join(", ") || "n/a", hint: `${p.peers.length} peers` },
     { label: "EPS (TTM)", value: fmtUSD(f.epsTTM) },
     { label: "EBITDA (TTM)", value: fmtUSD(f.ebitda, { compact: true }) },
     { label: "Revenue / share (TTM)", value: fmtUSD(f.revenuePerShare) },
     { label: "Net debt", value: fmtUSD(f.netDebt, { compact: true }) },
+    { label: "Book value / share", value: fmtUSD(f.bookValuePerShare) },
     ...implied.map((i) => ({
       label: i.label,
       value: i.value != null ? `${fmtX(i.mult)} → ${fmtUSD(i.value)}` : `${fmtX(i.mult)} → n/a`,
     })),
-    { label: "Implied range", value: available ? `${fmtUSD(low)} – ${fmtUSD(high)}` : "—" },
+    { label: "Implied range", value: available ? `${fmtUSD(low)} to ${fmtUSD(high)}` : "n/a" },
     { label: "Midpoint (median)", value: fmtUSD(mid) },
   ];
 
@@ -271,7 +275,7 @@ function buildDdm(d: AnalyzeResult, a: Assumptions): MethodResult {
   if (!(f.dividendPerShare > 0)) {
     return {
       ...baseMeta, available: false, low: null, high: null, mid: null,
-      unavailableReason: "Non-dividend payer — the dividend discount model does not apply.",
+      unavailableReason: "Non-dividend payer, the dividend discount model does not apply.",
       steps: [{ label: "Dividend / share (TTM)", value: fmtUSD(0) }],
     };
   }
@@ -293,7 +297,7 @@ function buildDdm(d: AnalyzeResult, a: Assumptions): MethodResult {
     { label: "Dividend growth (g_div)", value: fmtPct(gDiv), hint: "capped below cost of equity" },
     { label: "Next-year dividend (D₁)", value: fmtUSD(f.dividendPerShare * (1 + gDiv)) },
     { label: "Value = D₁ / (rₑ − g)", value: fmtUSD(value) },
-    { label: "Range (g_div ±0.5pt)", value: `${fmtUSD(Math.min(low, high))} – ${fmtUSD(Math.max(low, high))}` },
+    { label: "Range (g_div ±0.5pt)", value: `${fmtUSD(Math.min(low, high))} to ${fmtUSD(Math.max(low, high))}` },
   ];
 
   return {
@@ -312,12 +316,12 @@ function buildAnalyst(d: AnalyzeResult): MethodResult {
     isIntrinsic: false, available,
     low: an.targetLow, high: an.targetHigh, mid: an.targetMean,
     unavailableReason: available ? undefined : "No analyst price-target coverage available.",
-    formula: "Sell-side 12-month price targets (low / mean / high). A market anchor — shown separately, not blended into intrinsic value.",
+    formula: "Sell-side 12-month price targets (low / mean / high). A market anchor, shown separately, not blended into intrinsic value.",
     steps: [
       { label: "Low target", value: fmtUSD(an.targetLow) },
       { label: "Mean target", value: fmtUSD(an.targetMean) },
       { label: "High target", value: fmtUSD(an.targetHigh) },
-      { label: "Analysts", value: an.numAnalysts != null ? fmtNum(an.numAnalysts, 0) : "—" },
+      { label: "Analysts", value: an.numAnalysts != null ? fmtNum(an.numAnalysts, 0) : "n/a" },
     ],
     sources, asOfDate: an.available ? d.meta.asOf : null, stale: false, staleAgeMonths: null,
   };
@@ -330,8 +334,9 @@ export function computeValuation(d: AnalyzeResult, a: Assumptions): Valuation {
   const comps = buildComps(d, a);
   const ddm = buildDdm(d, a);
   const analyst = buildAnalyst(d);
+  const asset = buildAsset(d);
 
-  const methods = [dcf, comps, ddm, analyst];
+  const methods = [dcf, comps, ddm, analyst, asset];
 
   const blendKeys: MethodKey[] = [];
   const mids: number[] = [];
@@ -351,5 +356,39 @@ export function computeValuation(d: AnalyzeResult, a: Assumptions): Valuation {
   return {
     price: d.market.price, wacc: a.wacc, costEquity: d.costEquity, waccFallback: d.waccFallback,
     methods, blendedFairValue, blendMethodKeys: blendKeys, marginOfSafety, reverseImpliedGrowth,
+  };
+}
+
+// Asset-based floor, net cash per share + book value per share. Used as a
+// reference (not blended) and is the fallback "valuation" for names where
+// earnings/cash-flow models don't apply (e.g. pre-revenue biotech).
+function buildAsset(d: AnalyzeResult): MethodResult {
+  const f = d.fundamentals;
+  const shares = d.market.sharesOutstanding;
+  const sources: SourceRef[] = [];
+  if (d.sources.balanceAnnual) sources.push(d.sources.balanceAnnual);
+  const st = staleInfo(sources, d.meta.asOf);
+  const netCashPS = shares > 0 ? (f.cash - f.totalDebt) / shares : null;
+  const bvps = f.bookValuePerShare > 0 ? f.bookValuePerShare : null;
+  const candidates = [netCashPS, bvps].filter((v): v is number => v != null && isFinite(v) && v > 0);
+  const available = shares > 0 && candidates.length > 0;
+  const lo = available ? Math.min(...candidates) : null;
+  const hi = available ? Math.max(...candidates) : null;
+  const steps: Step[] = [
+    { label: "Cash & investments", value: fmtUSD(f.cash, { compact: true }) },
+    { label: "− Total debt", value: fmtUSD(f.totalDebt, { compact: true }) },
+    { label: "Net cash", value: fmtUSD(f.cash - f.totalDebt, { compact: true }) },
+    { label: "÷ Shares", value: compact(shares) },
+    { label: "Net cash / share", value: fmtUSD(netCashPS) },
+    { label: "Book value / share", value: fmtUSD(bvps) },
+    { label: "Asset floor range", value: available ? `${fmtUSD(lo)} to ${fmtUSD(hi)}` : "n/a" },
+  ];
+  return {
+    key: "asset", label: "Asset Value", sublabel: "Net cash · book value", isIntrinsic: false, available,
+    low: lo, high: hi, mid: available ? (bvps ?? netCashPS) : null,
+    unavailableReason: available ? undefined : "No usable balance-sheet figures (cash / equity / shares).",
+    formula: "Net cash/share = (cash − total debt) / shares; book value/share = shareholders’ equity / shares. An asset-based floor, most useful when earnings/cash-flow models don’t apply (e.g. pre-revenue biotech).",
+    steps, sources, asOfDate: st.asOfDate, stale: st.stale, staleAgeMonths: st.ageMonths,
+    note: "A reference floor, not blended into intrinsic fair value.",
   };
 }
